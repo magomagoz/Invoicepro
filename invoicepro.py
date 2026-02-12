@@ -9,48 +9,54 @@ import io
 COLORE_ATTIVA = "#28a745"   # Verde professionale
 COLORE_PASSIVA = "#007bff"  # Blu professionale (NON ROSSO!)
 
-# CSS PIÙ POTENTE - metti ALL'INIZIO dopo import
-st.markdown(f"""
+# 🎨 CSS DEFINITIVO - SOLO KEY (più specifico)
+st.markdown("""
 <style>
-/* ATTIVA - VERDE FORZATO */
-div[data-testid="stHorizontalBlock"] div:first-child div div button,
-.stKey-attiva button {{
-    background: linear-gradient(135deg, {COLORE_ATTIVA}, #218838) !important;
+/* ATTIVA - VERDE (SOLO key="attiva") */
+[data-testid="stButton"] [data-key="attiva"] button,
+.stKey-attiva button,
+button[kind="attiva"] {
+    background: linear-gradient(135deg, #28a745, #218838) !important;
     color: white !important;
     border: none !important;
     border-radius: 12px !important;
-    font-weight: bold !important;
+    font-weight: 700 !important;
     height: 80px !important;
     font-size: 16px !important;
-    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4) !important;
-}}
-.stKey-attiva button:hover {{
-    background: linear-gradient(135deg, #218838, {COLORE_ATTIVA}) !important;
-    transform: translateY(-3px) !important;
-    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.6) !important;
-}}
+    box-shadow: 0 6px 20px rgba(40,167,69,0.4) !important;
+    transition: all 0.3s ease !important;
+}
+[data-testid="stButton"] [data-key="attiva"] button:hover,
+.stKey-attiva button:hover {
+    background: linear-gradient(135deg, #218838, #1e7e34) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(40,167,69,0.6) !important;
+}
 
-/* PASSIVA - BLU FORZATO */
-div[data-testid="stHorizontalBlock"] div:last-child div div button,
-.stKey-passiva button {{
-    background: linear-gradient(135deg, {COLORE_PASSIVA}, #0056b3) !important;
+/* PASSIVA - BLU (SOLO key="passiva") */
+[data-testid="stButton"] [data-key="passiva"] button,
+.stKey-passiva button,
+button[kind="passiva"] {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
     color: white !important;
     border: none !important;
     border-radius: 12px !important;
-    font-weight: bold !important;
+    font-weight: 700 !important;
     height: 80px !important;
     font-size: 16px !important;
-    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4) !important;
-}}
-.stKey-passiva button:hover {{
+    box-shadow: 0 6px 20px rgba(0,123,255,0.4) !important;
+    transition: all 0.3s ease !important;
+}
+[data-testid="stButton"] [data-key="passiva"] button:hover,
+.stKey-passiva button:hover {
     background: linear-gradient(135deg, #0056b3, #004085) !important;
-    transform: translateY(-3px) !important;
-    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.6) !important;
-}}
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(0,123,255,0.6) !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
-def create_excel_buffer(self, df, sheet_name):
+def create_excel_buffer(df, sheet_name):
     """Crea buffer Excel professionale con formattazione"""
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
@@ -129,9 +135,9 @@ if st.sidebar.button("📋 **ARCHIVIO FATTURE**", use_container_width=True):
 if st.session_state.pagina == "home":
     
     # LOGO - sostituisci "logo.png" con il nome del tuo file
-    st.image("logo.png", use_column_width=False)
+    #st.image("logo.png", use_column_width=False)
     
-    st.markdown('</div></div>', unsafe_allow_html=True)
+    #st.markdown('</div></div>', unsafe_allow_html=True)
     
     st.markdown("---")
 
