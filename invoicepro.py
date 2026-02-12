@@ -5,19 +5,47 @@ from datetime import datetime
 import pandas as pd
 import io
 
-# Definisci colori in alto
-COLORE_ATTIVA = "#33cc66"  # Verde
-COLORE_PASSIVA = "#ff0033" # Blu
+# Definisci colori CORRETTI
+COLORE_ATTIVA = "#28a745"   # Verde professionale
+COLORE_PASSIVA = "#007bff"  # Blu professionale (NON ROSSO!)
 
-# CSS dinamico
+# CSS PIÙ POTENTE - metti ALL'INIZIO dopo import
 st.markdown(f"""
 <style>
-.stKey-attiva > div > div > button {{
-    background-color: {COLORE_ATTIVA} !important;
+/* ATTIVA - VERDE FORZATO */
+div[data-testid="stHorizontalBlock"] div:first-child div div button,
+.stKey-attiva button {{
+    background: linear-gradient(135deg, {COLORE_ATTIVA}, #218838) !important;
     color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: bold !important;
+    height: 80px !important;
+    font-size: 16px !important;
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4) !important;
 }}
-.stKey-passiva > div > div > button {{
+.stKey-attiva button:hover {{
+    background: linear-gradient(135deg, #218838, {COLORE_ATTIVA}) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.6) !important;
+}}
+
+/* PASSIVA - BLU FORZATO */
+div[data-testid="stHorizontalBlock"] div:last-child div div button,
+.stKey-passiva button {{
     background: linear-gradient(135deg, {COLORE_PASSIVA}, #0056b3) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: bold !important;
+    height: 80px !important;
+    font-size: 16px !important;
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4) !important;
+}}
+.stKey-passiva button:hover {{
+    background: linear-gradient(135deg, #0056b3, #004085) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.6) !important;
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -114,18 +142,20 @@ if st.session_state.pagina == "home":
     
     st.markdown("*Scegli il tipo di fatturazione*")
     
-    col1, col2 = st.columns(2, gap="small")
-    
+    col1, col2 = st.columns(2, gap="large")
+
     with col1:
         if st.button("📤 **FATTURAZIONE ATTIVA**  \n_Fatture emesse ai clienti_", 
-                    type="primary", use_container_width=True, help="Crea fattura per i tuoi clienti"):
+                    key="attiva",  # ← OBBLIGATORIO!
+                    use_container_width=True):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Attiva"
             st.rerun()
     
     with col2:
         if st.button("📥 **FATTURAZIONE PASSIVA**  \n_Fatture ricevute dai fornitori_", 
-                    type="secondary", use_container_width=True, help="Registra fatture fornitori"):
+                    key="passiva",  # ← OBBLIGATORIO!
+                    use_container_width=True):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Passiva"
             st.rerun()
