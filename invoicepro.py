@@ -5,6 +5,19 @@ from datetime import datetime
 import pandas as pd
 import io
 
+# PAGINA HOME - Scelta tipo fatturazione CON LOGO
+if st.session_state.pagina == "home":
+    # Header con logo a DESTRA
+    st.markdown('<div class="main-header"><div class="title-container">', unsafe_allow_html=True)
+    st.markdown('<h1 style="color: #4CAF50; margin: 0;">💼 Gestione Fatturazione</h1>', unsafe_allow_html=True)
+    st.markdown('</div><div class="logo-container">', unsafe_allow_html=True)
+    
+    # LOGO - sostituisci "logo.png" con il nome del tuo file
+    st.image("logo.png", use_column_width=False)
+    
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
+
 # CSS per logo in alto a destra
 st.markdown("""
 <style>
@@ -101,10 +114,6 @@ if 'dati_fatture' not in st.session_state:
 if 'pagina' not in st.session_state:
     st.session_state.pagina = "home"
 
-# Layout principale con sidebar
-st.title("💼 Gestione Fatturazione")
-st.markdown("---")
-
 # Sidebar navigazione
 st.sidebar.title("Navigazione")
 if st.sidebar.button("🏠 Scegli Clienti o Fornitori", use_container_width=True):
@@ -113,17 +122,6 @@ if st.sidebar.button("🏠 Scegli Clienti o Fornitori", use_container_width=True
 if st.sidebar.button("📋 Storico Fatture", use_container_width=True):
     st.session_state.pagina = "storico"
 
-# PAGINA HOME - Scelta tipo fatturazione CON LOGO
-if st.session_state.pagina == "home":
-    # Header con logo a DESTRA
-    st.markdown('<div class="main-header"><div class="title-container">', unsafe_allow_html=True)
-    st.markdown('<h1 style="color: #4CAF50; margin: 0;">💼 Gestione Fatturazione</h1>', unsafe_allow_html=True)
-    st.markdown('</div><div class="logo-container">', unsafe_allow_html=True)
-    
-    # LOGO - sostituisci "logo.png" con il nome del tuo file
-    st.image("logo.png", use_column_width=False)
-    
-    st.markdown('</div></div>', unsafe_allow_html=True)
     
     st.markdown("---")
     st.markdown("*Scegli il tipo di fatturazione*")
