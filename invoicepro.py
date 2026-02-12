@@ -3,6 +3,38 @@ import json
 import os
 from datetime import datetime
 import pandas as pd
+import io
+
+def create_excel_buffer(self, df, sheet_name):
+    """Crea buffer Excel professionale con formattazione"""
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name=sheet_name, index=False)
+        
+        # Ottieni workbook e worksheet per formattazione
+        workbook = writer.book
+        worksheet = writer.sheets[sheet_name]
+        
+        # Auto-adjust colonne
+        for column in worksheet.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        # Intestazioni bold
+        from openpyxl.styles import Font
+        for cell in worksheet[1]:
+            cell.font = Font(bold=True)
+    
+    buffer.seek(0)
+    return buffer.getvalue()
 
 # Configurazione pagina
 st.set_page_config(
@@ -134,30 +166,101 @@ elif st.session_state.pagina == "form":
         if st.button("🖨️ Stampa PDF", use_container_width=True):
             st.info("📄 PDF pronto! (Implementa reportlab per export reale)")
 
-# STORICO FATTURE
+# STORICO FATTURE (SEZIONE AGGIORNATA)
 elif st.session_state.pagina == "storico":
     st.header("📋 Storico Fatture")
     
     # Statistiche
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     col1.metric("Fatture Attive", len(st.session_state.dati_fatture["Attiva"]))
     col2.metric("Fatture Passive", len(st.session_state.dati_fatture["Passiva"]))
-    col3.metric("Totale Attive", 
-               f"€ {sum(f.get('totale', 0) for f in st.session_state.dati_fatture['Attiva']):.2f}")
+    totale_attive = sum(f.get('totale', 0) for f in st.session_state.dati_fatture['Attiva'])
+    totale_passive = sum(f.get('totale', 0) for f in st.session_state.dati_fatture['Passiva'])
+    col3.metric("Totale Attive", f"€ {totale_attive:.2f}")
+    col4.metric("Totale Passive", f"€ {totale_passive:.2f}")
     
-    # Tabs per tipo
-    tab1, tab2 = st.tabs(["Fatturazione Attiva", "Fatturazione Passiva"])
+    # Bottoni export principali
+    col_exp1, col_exp2, _ = st.columns(2)
+    with col_exp1:
+        if st.button("📊 **Esporta TUTTE Attive in Excel**", type="primary", use_container_width=True):
+            df = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
+            buffer = self.create_excel_buffer(df, "Fatture_Attive")
+            st.download_button(
+                label="💾 Scarica Excel Attive",
+                data=buffer,
+                file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+    with col_exp2:
+        if st.button("📊 **Esporta TUTTE Passive in Excel**", type="secondary", use_container_width=True):
+            df = pd.DataFrame(st.session_state.dati_fatture["Passiva"])
+            buffer = self.create_excel_buffer(df, "Fatture_Passive")
+            st.download_button(
+                label="💾 Scarica Excel Passive",
+                data=buffer,
+                file_name=f"Fatture_Passive_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+    
+    # Tabs per tipo CON EXPORT DEDICATO
+    tab1, tab2 = st.tabs(["📤 Fatturazione Attiva", "📥 Fatturazione Passiva"])
     
     with tab1:
         if st.session_state.dati_fatture["Attiva"]:
             df_attive = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
-            st.dataframe(df_attive, use_container_width=True)
+            
+            # Bottoni export specifici per tab
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.download_button(
+                    label="⬇️ **Excel Attive**",
+                    data=self.create_excel_buffer(df_attive, "Fatture_Attive"),
+                    file_name=f"Attive_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    use_container_width=True
+                ):
+                    st.success("✅ Excel scaricato!")
+            
+            with col2:
+                csv = df_attive.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="📄 CSV Attive",
+                    data=csv,
+                    file_name=f"Attive_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                    mime='text/csv',
+                    use_container_width=True
+                )
+            
+            st.dataframe(df_attive, use_container_width=True, hide_index=True)
         else:
-            st.info("Nessuna fattura attiva registrata")
+            st.info("👆 Nessuna fattura attiva. Crea la prima dalla Home!")
     
     with tab2:
         if st.session_state.dati_fatture["Passiva"]:
             df_passive = pd.DataFrame(st.session_state.dati_fatture["Passiva"])
-            st.dataframe(df_passive, use_container_width=True)
+            
+            # Bottoni export specifici per tab
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.download_button(
+                    label="⬇️ **Excel Passive**",
+                    data=self.create_excel_buffer(df_passive, "Fatture_Passive"),
+                    file_name=f"Passive_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    use_container_width=True
+                ):
+                    st.success("✅ Excel scaricato!")
+            
+            with col2:
+                csv = df_passive.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="📄 CSV Passive",
+                    data=csv,
+                    file_name=f"Passive_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                    mime='text/csv',
+                    use_container_width=True
+                )
+            
+            st.dataframe(df_passive, use_container_width=True, hide_index=True)
         else:
-            st.info("Nessuna fattura passiva registrata")
+            st.info("👆 Nessuna fattura passiva. Crea la prima dalla Home!")
