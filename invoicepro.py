@@ -101,17 +101,17 @@ if st.session_state.pagina == "home":
     
     st.markdown("*Scegli il tipo di fatturazione*")
     
-    col1, col2 = st.columns(2, gap="medium")
+    col1, col2 = st.columns(2, gap="small")
     
     with col1:
-        if st.button("📤 **FATTURAZIONE ATTIVA**  \n_Fatture emesse ai clienti_", 
+        if st.button("📤 **FATTURAZIONE ATTIVA (CLIENTI)**  \n_Fatture emesse ai clienti_", 
                     type="primary", use_container_width=True, help="Crea fattura per i tuoi clienti"):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Attiva"
             st.rerun()
     
     with col2:
-        if st.button("📥 **FATTURAZIONE PASSIVA**  \n_Fatture ricevute dai fornitori_", 
+        if st.button("📥 **FATTURAZIONE PASSIVA (FORNITORI)**  \n_Fatture ricevute dai fornitori_", 
                     type="secondary", use_container_width=True, help="Registra fatture fornitori"):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Passiva"
@@ -129,11 +129,11 @@ elif st.session_state.pagina == "form":
         data = st.date_input("Data", value=datetime.now())
         numero = st.text_input("Numero Protocollo", value=f"2026/{len(st.session_state.dati_fatture[tipo])+1}")
         nome = st.text_input("Cliente/Fornitore", 
-                           value="Mario Rossi Srl" if tipo == "Attiva" else "Fornitore XYZ")
-        piva = st.text_input("P.IVA / CF", value="IT12345678901")
+                           value="Cliente" if tipo == "Attiva" else "Fornitore")
+        piva = st.text_input("P.IVA / CF", value="")
     
     with col2:
-        imponibile = st.number_input("Imponibile (€)", min_value=0.0, value=1000.0, step=0.01, format="%.2f")
+        imponibile = st.number_input("Imponibile (€)", min_value=0.0, step=0.01, format="%.2f")
         iva_perc = st.number_input("Aliquota IVA (%)", min_value=0.0, value=22.0, step=0.1)
         pagamento = st.selectbox("Modalità Pagamento", 
                                ["Bonifico 30gg", "Bonifico 60gg", "Anticipo", "Contanti"])
