@@ -5,6 +5,23 @@ from datetime import datetime
 import pandas as pd
 import io
 
+# Definisci colori in alto
+COLORE_ATTIVA = "#33cc66"  # Verde
+COLORE_PASSIVA = "#ff0033" # Blu
+
+# CSS dinamico
+st.markdown(f"""
+<style>
+.stKey-attiva > div > div > button {{
+    background-color: {COLORE_ATTIVA} !important;
+    color: white !important;
+}}
+.stKey-passiva > div > div > button {{
+    background: linear-gradient(135deg, {COLORE_PASSIVA}, #0056b3) !important;
+}}
+</style>
+""", unsafe_allow_html=True)
+
 def create_excel_buffer(self, df, sheet_name):
     """Crea buffer Excel professionale con formattazione"""
     buffer = io.BytesIO()
