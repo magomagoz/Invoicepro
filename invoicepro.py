@@ -73,7 +73,7 @@ if 'pagina' not in st.session_state:
     st.session_state.pagina = "home"
 
 # Sidebar navigazione
-st.sidebar.title("Navigazione")
+st.sidebar.title("CONFIGURAZIONE")
 if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
     st.session_state.pagina = "home"
 
@@ -104,14 +104,14 @@ if st.session_state.pagina == "home":
     col1, col2 = st.columns(2, gap="small")
     
     with col1:
-        if st.button("📤 **FATTURAZIONE ATTIVA (CLIENTI)**  \n_Fatture emesse ai clienti_", 
+        if st.button("📤 **FATTURAZIONE ATTIVA**  \n_Fatture emesse ai clienti_", 
                     type="primary", use_container_width=True, help="Crea fattura per i tuoi clienti"):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Attiva"
             st.rerun()
     
     with col2:
-        if st.button("📥 **FATTURAZIONE PASSIVA (FORNITORI)**  \n_Fatture ricevute dai fornitori_", 
+        if st.button("📥 **FATTURAZIONE PASSIVA**  \n_Fatture ricevute dai fornitori_", 
                     type="secondary", use_container_width=True, help="Registra fatture fornitori"):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Passiva"
