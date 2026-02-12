@@ -95,7 +95,7 @@ if st.session_state.pagina == "home":
     st.markdown("---")
 
     # Layout principale con sidebar
-    st.title("💼 Gestione Fatturazione Attiva/Passiva")
+    st.title("💼 Fatturazione aziendale")
     st.markdown("---")
 
     
