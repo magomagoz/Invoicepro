@@ -101,7 +101,7 @@ if st.session_state.pagina == "home":
     
     st.markdown("*Scegli il tipo di fatturazione*")
     
-    col1, col2 = st.columns(2, gap="2rem")
+    col1, col2 = st.columns(2, gap="medium")
     
     with col1:
         if st.button("📤 **FATTURAZIONE ATTIVA**  \n_Fatture emesse ai clienti_", 
