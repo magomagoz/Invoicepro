@@ -72,10 +72,6 @@ if 'dati_fatture' not in st.session_state:
 if 'pagina' not in st.session_state:
     st.session_state.pagina = "home"
 
-# Layout principale con sidebar
-st.title("💼 Gestione Fatturazione Attiva/Passiva")
-st.markdown("---")
-
 # Sidebar navigazione
 st.sidebar.title("Navigazione")
 if st.sidebar.button("🏠 Home - Scegli Tipo", use_container_width=True):
@@ -97,6 +93,12 @@ if st.session_state.pagina == "home":
     st.markdown('</div></div>', unsafe_allow_html=True)
     
     st.markdown("---")
+
+    # Layout principale con sidebar
+    st.title("💼 Gestione Fatturazione Attiva/Passiva")
+    st.markdown("---")
+
+    
     st.markdown("*Scegli il tipo di fatturazione*")
     
     col1, col2 = st.columns(2, gap="2rem")
