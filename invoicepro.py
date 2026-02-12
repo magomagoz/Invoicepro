@@ -74,10 +74,10 @@ if 'pagina' not in st.session_state:
 
 # Sidebar navigazione
 st.sidebar.title("Navigazione")
-if st.sidebar.button("🏠 FATTURAZIONE", use_container_width=True):
+if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
     st.session_state.pagina = "home"
 
-if st.sidebar.button("📋 ARCHIVIO FATTURE", use_container_width=True):
+if st.sidebar.button("📋 **ARCHIVIO FATTURE**", use_container_width=True):
     st.session_state.pagina = "storico"
 
 # PAGINA HOME - Scelta tipo fatturazione CON LOGO
