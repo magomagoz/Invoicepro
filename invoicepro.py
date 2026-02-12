@@ -82,10 +82,6 @@ if st.sidebar.button("📋 **ARCHIVIO FATTURE**", use_container_width=True):
 
 # PAGINA HOME - Scelta tipo fatturazione CON LOGO
 if st.session_state.pagina == "home":
-    # Header con logo a DESTRA
-    #st.markdown('<div class="main-header"><div class="title-container">', unsafe_allow_html=True)
-    #st.markdown('<h1 style="color: #4CAF50; margin: 0;">💼 Gestione Fatturazione</h1>', unsafe_allow_html=True)
-    #st.markdown('</div><div class="logo-container">', unsafe_allow_html=True)
     
     # LOGO - sostituisci "logo.png" con il nome del tuo file
     st.image("logo.png", use_column_width=False)
@@ -95,7 +91,7 @@ if st.session_state.pagina == "home":
     st.markdown("---")
 
     # Layout principale con sidebar
-    st.title("💼 Fatturazione aziendale")
+    st.title("💼 Fatturazione aziendale 💼")
     st.markdown("---")
 
     
