@@ -6,7 +6,7 @@ import pandas as pd
 
 # Configurazione pagina
 st.set_page_config(
-    page_title="Fatturazione Attiva/Passiva",
+    page_title="Fatturazione",
     page_icon="💼",
     layout="wide"
 )
@@ -41,12 +41,12 @@ if 'pagina' not in st.session_state:
     st.session_state.pagina = "home"
 
 # Layout principale con sidebar
-st.title("💼 Gestione Fatturazione Attiva/Passiva")
+st.title("💼 Gestione Fatturazione")
 st.markdown("---")
 
 # Sidebar navigazione
 st.sidebar.title("Navigazione")
-if st.sidebar.button("🏠 Home - Scegli Tipo", use_container_width=True):
+if st.sidebar.button("🏠 Scegli Clienti o Fornitori", use_container_width=True):
     st.session_state.pagina = "home"
 
 if st.sidebar.button("📋 Storico Fatture", use_container_width=True):
