@@ -5,35 +5,6 @@ from datetime import datetime
 import pandas as pd
 import io
 
-# CSS per logo in alto a destra
-st.markdown("""
-<style>
-    .main-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 2rem;
-        position: relative;
-    }
-    .logo-container {
-        position: absolute;
-        top: 1rem;
-        right: 2rem;
-        z-index: 1000;
-    }
-    .logo-container img {
-        max-height: 60px;
-        width: auto;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .title-container {
-        flex: 1;
-        text-align: center;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 def create_excel_buffer(self, df, sheet_name):
     """Crea buffer Excel professionale con formattazione"""
     buffer = io.BytesIO()
@@ -67,7 +38,7 @@ def create_excel_buffer(self, df, sheet_name):
 
 # Configurazione pagina
 st.set_page_config(
-    page_title="Fatturazione",
+    page_title="Fatturazione Attiva/Passiva",
     page_icon="💼",
     layout="wide"
 )
@@ -101,9 +72,13 @@ if 'dati_fatture' not in st.session_state:
 if 'pagina' not in st.session_state:
     st.session_state.pagina = "home"
 
+# Layout principale con sidebar
+st.title("💼 Gestione Fatturazione Attiva/Passiva")
+st.markdown("---")
+
 # Sidebar navigazione
 st.sidebar.title("Navigazione")
-if st.sidebar.button("🏠 Scegli Clienti o Fornitori", use_container_width=True):
+if st.sidebar.button("🏠 Home - Scegli Tipo", use_container_width=True):
     st.session_state.pagina = "home"
 
 if st.sidebar.button("📋 Storico Fatture", use_container_width=True):
