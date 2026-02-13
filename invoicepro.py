@@ -5,7 +5,6 @@ from datetime import datetime
 import pandas as pd
 import io
 
-# ✅ CORRETTO  
 def create_excel_buffer(df, sheet_name):  # ← RIMUOVI self
     """Crea buffer Excel professionale con formattazione"""
     buffer = io.BytesIO()
