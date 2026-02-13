@@ -115,6 +115,13 @@ if st.session_state.pagina == "home":
 
 # FORM FATTURAZIONE
 elif st.session_state.pagina == "form":
+    
+    # LOGO - sostituisci "logo.png" con il nome del tuo file
+    st.image("logo1.png", use_column_width=False)
+    
+    #st.markdown('</div></div>', unsafe_allow_html=True)
+
+    
     tipo = st.session_state.tipo
     st.header(f"📄 {tipo} - Nuova Fattura")
     
@@ -179,7 +186,7 @@ elif st.session_state.pagina == "form":
 elif st.session_state.pagina == "storico":
     
     # LOGO - sostituisci "logo.png" con il nome del tuo file
-    st.image("logo.png", use_column_width=False)
+    st.image("logo1.png", use_column_width=False)
     
     st.header("📋 Storico Fatture")
     
