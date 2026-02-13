@@ -83,7 +83,7 @@ if st.sidebar.button("📋 **ARCHIVIO FATTURE**", use_container_width=True):
 # SOSTITUISCI la sezione HOME con questo:
 if st.session_state.pagina == "home":
     # LOGO - sostituisci "logo.png" con il nome del tuo file
-    st.image("logo1.png", use_column_width=False)
+    st.image("logo.png", use_column_width=False)
     
     st.title("💼 Fatturazione aziendale 💼")
     st.markdown("---")
@@ -108,7 +108,7 @@ if st.session_state.pagina == "home":
     
 # FORM FATTURAZIONE - VERSIONE CORRETTA
 elif st.session_state.pagina == "form":
-    st.image("logo1.png", use_column_width=False)
+    st.image("logo.png", use_column_width=False)
     
     tipo = st.session_state.tipo
     st.header(f"📄 {tipo} - Nuova Fattura")
