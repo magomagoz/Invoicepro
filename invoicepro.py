@@ -1,9 +1,46 @@
 import streamlit as st
+import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
 import json
 import os
 from datetime import datetime
 import pandas as pd
 import io
+
+# 🔐 LOGIN - INIZIO APP
+try:
+    # Carica config
+    with open('config.yaml') as file:
+        config = yaml.load(file, Loader=SafeLoader)
+    
+    authenticator = stauth.Authenticate(
+        config['credentials'],
+        config['cookie']['Pino'],
+        config['cookie']['Pino'], 
+        config['cookie']['expiry_days'],
+        config['preauthorized']
+    )
+    
+    name, authentication_status, username = authenticator.login(
+        "🔐 **LOGIN INVOICE PRO**",
+        "main"
+    )
+    
+    if authentication_status == False:
+        st.error("❌ **Credenziali errate**")
+        st.stop()
+    elif authentication_status == None:
+        st.warning("⚠️ **Inserisci username/password**")
+        st.stop()
+    elif authentication_status:
+        # ✅ LOGIN OK - MOSTRA APP
+        st.sidebar.success(f"👋 Benvenuto **{name}**")
+        authenticator.logout("🚪 **Logout**", "sidebar")
+
+except Exception as e:
+    st.error("❌ **File config.yaml mancante**")
+    st.stop()
 
 def create_excel_buffer(df, sheet_name):  # ← RIMUOVI self
     """Crea buffer Excel professionale con formattazione"""
