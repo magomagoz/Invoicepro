@@ -8,40 +8,6 @@ from datetime import datetime
 import pandas as pd
 import io
 
-# 🔐 LOGIN - INIZIO APP
-try:
-    with open('config.yaml') as file:
-        config = yaml.load(file, Loader=SafeLoader)
-    
-    authenticator = stauth.Authenticate(
-        config['credentials'],
-        config['cookie']['name'],
-        config['cookie']['key'], 
-        config['cookie']['expiry_days']
-    )
-    
-    # ✅ LOGIN - Salva in session_state
-    authenticator.login(location="main")
-    
-    # ✅ LEGGI DA SESSION STATE (non unpack!)
-    if st.session_state["authentication_status"]:
-        st.sidebar.success(f"👋 Benvenuto **{st.session_state['name']}**")
-        authenticator.logout("🚪 **Logout**", "sidebar")
-        
-    elif st.session_state["authentication_status"] == False:
-        st.error("❌ **Credenziali errate**")
-        st.stop()
-        
-    elif st.session_state["authentication_status"] is None:
-        st.warning("⚠️ **Inserisci username/password**")
-        st.stop()
-
-except Exception as e:
-    st.error(f"❌ **Errore: {str(e)}**")
-    st.stop()
-
-
-
 def create_excel_buffer(df, sheet_name):  # ← RIMUOVI self
     """Crea buffer Excel professionale con formattazione"""
     buffer = io.BytesIO()
