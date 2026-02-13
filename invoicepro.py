@@ -472,7 +472,7 @@ elif st.session_state.pagina == "storico":
             with col1:
                 if st.download_button(
                     label="⬇️ **Excel Attive**",
-                    data=self.create_excel_buffer(df_attive, "Fatture_Attive"),
+                    data=create_excel_buffer(df_attive, "Fatture_Attive"),
                     file_name=f"Attive_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     use_container_width=True
