@@ -530,7 +530,7 @@ with col_xml2:
     )
 
 # PAGINA ANAGRAFICHE
-elif st.session_state.pagina == "anagrafiche":
+if st.session_state.pagina == "anagrafiche":
     st.image("logo1.png", use_column_width=False)
     st.header("👥 **Gestione Anagrafiche**")
     
