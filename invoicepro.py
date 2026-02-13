@@ -99,23 +99,23 @@ if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
 # Info anno selezionato
 st.sidebar.info(f"**Filtro attivo: {anno_selezionato}**")
     
-    col1, col2 = st.columns(2, gap="large")
+col1, col2 = st.columns(2, gap="large")
     
-    with col1:
-        st.markdown("### 🟢 **FATTURE ATTIVE**")
-        st.markdown("*Fatture emesse ai clienti*")
-        if st.button("**INIZIA →**", key="attiva_go", use_container_width=True):
-            st.session_state.pagina = "form"
-            st.session_state.tipo = "Attiva"
-            st.rerun()
+with col1:
+    st.markdown("### 🟢 **FATTURE ATTIVE**")
+    st.markdown("*Fatture emesse ai clienti*")
+    if st.button("**INIZIA →**", key="attiva_go", use_container_width=True):
+        st.session_state.pagina = "form"
+        st.session_state.tipo = "Attiva"
+        st.rerun()
     
-    with col2:
-        st.markdown("### 🔵 **FATTURE PASSIVE**")
-        st.markdown("*Fatture ricevute dai fornitori*")
-        if st.button("**INIZIA →**", key="passiva_go", use_container_width=True):
-            st.session_state.pagina = "form"
-            st.session_state.tipo = "Passiva"
-            st.rerun()
+with col2:
+    st.markdown("### 🔵 **FATTURE PASSIVE**")
+    st.markdown("*Fatture ricevute dai fornitori*")
+    if st.button("**INIZIA →**", key="passiva_go", use_container_width=True):
+        st.session_state.pagina = "form"
+        st.session_state.tipo = "Passiva"
+        st.rerun()
     
 # FORM FATTURAZIONE - VERSIONE CORRETTA
 elif st.session_state.pagina == "form":
