@@ -1,0 +1,14 @@
+credentials:
+  usernames:
+    admin:
+      email: admin@azienda.it
+      name: Amministratore
+      password: $2b$12$abcd1234567890abcdefgHIJKlmnopQRSTuvwx  # Genera dopo
+
+cookie:
+  name: invoicepro
+  key: supersecretkeychangeit1234567890abcdef
+  expiry_days: 30
+
+preauthorized:
+  emails: []
