@@ -79,19 +79,12 @@ if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
 
 if st.sidebar.button("📋 **ARCHIVIO FATTURE**", use_container_width=True):
     st.session_state.pagina = "storico"
-
-# PAGINA HOME - Scelta tipo fatturazione CON LOGO
-if st.session_state.pagina == "home":
     
-# LOGO - sostituisci "logo.png" con il nome del tuo file
-st.image("logo1.png", use_column_width=False)
-    
-    #st.markdown('</div></div>', unsafe_allow_html=True)
-    
-    st.markdown("---")
-
 # SOSTITUISCI la sezione HOME con questo:
 if st.session_state.pagina == "home":
+    # LOGO - sostituisci "logo.png" con il nome del tuo file
+    st.image("logo1.png", use_column_width=False)
+    
     st.title("💼 Fatturazione aziendale 💼")
     st.markdown("---")
     
