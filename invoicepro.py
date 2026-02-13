@@ -5,13 +5,13 @@ from datetime import datetime
 import pandas as pd
 import io
 
-def create_excel_buffer(df, sheet_name):
+# ✅ CORRETTO  
+def create_excel_buffer(df, sheet_name):  # ← RIMUOVI self
     """Crea buffer Excel professionale con formattazione"""
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
         df.to_excel(writer, sheet_name=sheet_name, index=False)
         
-        # Ottieni workbook e worksheet per formattazione
         workbook = writer.book
         worksheet = writer.sheets[sheet_name]
         
@@ -219,7 +219,7 @@ elif st.session_state.pagina == "storico":
 
     if st.button("📊 **Esporta TUTTE Attive in Excel**", type="primary", use_container_width=True):
         df = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
-        buffer = self.create_excel_buffer(df, "Fatture_Attive")
+        buffer = create_excel_buffer(df, "Fatture_Attive")
         st.download_button(
             label="💾 Scarica Excel Attive",
             data=buffer,
@@ -235,7 +235,7 @@ elif st.session_state.pagina == "storico":
 
     if st.button("📊 **Esporta TUTTE Passive in Excel**", type="secondary", use_container_width=True):
         df = pd.DataFrame(st.session_state.dati_fatture["Passiva"])
-        buffer = self.create_excel_buffer(df, "Fatture_Passive")
+        buffer = create_excel_buffer(df, "Fatture_Passive")
         st.download_button(
             label="💾 Scarica Excel Passive",
             data=buffer,
@@ -287,7 +287,7 @@ elif st.session_state.pagina == "storico":
             with col1:
                 if st.download_button(
                     label="⬇️ **Excel Passive**",
-                    data=self.create_excel_buffer(df_passive, "Fatture_Passive"),
+                    data=create_excel_buffer(df_passive, "Fatture_Passive"),
                     file_name=f"Passive_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     use_container_width=True
