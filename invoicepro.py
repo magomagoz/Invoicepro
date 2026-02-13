@@ -150,14 +150,14 @@ elif st.session_state.pagina == "form":
     else:
         # Popup normale salvataggio
     
-        # === POPUP SALVATAGGIO ===
-        @st.dialog(f"💾 Conferma salvataggio {tipo}", width="500")
-        def dialog_salvataggio(numero, nome, totale):
-            st.markdown(f"**Confermi il salvataggio della fattura?**")
-            st.markdown(f"### 📄 Dettagli:")
-            st.markdown(f"- **Numero:** {numero}")
-            st.markdown(f"- **Cliente/Fornitore:** {nome}")
-            st.markdown(f"- **Totale:** € {totale:.2f}")
+            # === POPUP SALVATAGGIO ===
+            @st.dialog(f"💾 Conferma salvataggio {tipo}", width="500")
+            def dialog_salvataggio(numero, nome, totale):
+                st.markdown(f"**Confermi il salvataggio della fattura?**")
+                st.markdown(f"### 📄 Dettagli:")
+                st.markdown(f"- **Numero:** {numero}")
+                st.markdown(f"- **Cliente/Fornitore:** {nome}")
+                st.markdown(f"- **Totale:** € {totale:.2f}")
         
         col_c, col_s = st.columns([3,1])
         with col_c:
