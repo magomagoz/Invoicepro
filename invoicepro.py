@@ -13,19 +13,15 @@ try:
     with open('config.yaml') as file:
         config = yaml.load(file, Loader=SafeLoader)
     
-    # ❌ RIMUOVI preauthorized dal costruttore
     authenticator = stauth.Authenticate(
         config['credentials'],
         config['cookie']['name'],
         config['cookie']['key'], 
         config['cookie']['expiry_days']
-        # ← preauthorized RIMUOVI QUI
     )
     
-    name, authentication_status, username = authenticator.login(
-        "🔐 **LOGIN INVOICE PRO**",
-        "main"
-    )
+    # ✅ NUOVA SINTASSI - solo location='main'
+    name, authentication_status, username = authenticator.login(location="main")
     
     if authentication_status == False:
         st.error("❌ **Credenziali errate**")
@@ -40,6 +36,7 @@ try:
 except Exception as e:
     st.error(f"❌ **Errore: {str(e)}**")
     st.stop()
+
 
 def create_excel_buffer(df, sheet_name):  # ← RIMUOVI self
     """Crea buffer Excel professionale con formattazione"""
