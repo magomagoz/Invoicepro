@@ -105,11 +105,9 @@ if st.session_state.pagina == "home":
             st.session_state.pagina = "form"
             st.session_state.tipo = "Passiva"
             st.rerun()
-
-# FORM FATTURAZIONE
-elif st.session_state.pagina == "form":
     
-    # LOGO - sostituisci "logo.png" con il nome del tuo file
+# FORM FATTURAZIONE - VERSIONE CORRETTA
+elif st.session_state.pagina == "form":
     st.image("logo1.png", use_column_width=False)
     
     tipo = st.session_state.tipo
@@ -117,47 +115,33 @@ elif st.session_state.pagina == "form":
     
     # Form in due colonne
     col1, col2 = st.columns(2)
-    
     with col1:
         data = st.date_input("Data", value=datetime.now())
         numero = st.text_input("Numero Protocollo", value=f"2026/{len(st.session_state.dati_fatture[tipo])+1}")
-        nome = st.text_input("Cliente/Fornitore", 
-                           value="Cliente" if tipo == "Attiva" else "Fornitore")
+        nome = st.text_input("Cliente/Fornitore", value="Cliente" if tipo == "Attiva" else "Fornitore")
         piva = st.text_input("P.IVA / CF", value="")
     
     with col2:
         imponibile = st.number_input("Imponibile (€)", min_value=0.0, step=0.01, format="%.2f")
         iva_perc = st.number_input("Aliquota IVA (%)", min_value=0.0, value=22.0, step=0.1)
-        pagamento = st.selectbox("Modalità Pagamento", 
-                               ["Bonifico 30gg", "Bonifico 60gg", "Anticipo", "Contanti"])
+        pagamento = st.selectbox("Modalità Pagamento", ["Bonifico 30gg", "Bonifico 60gg", "Anticipo", "Contanti"])
     
-    # Calcolo totali live
+    # Calcolo totali
     iva, totale = calcola_totali(imponibile, iva_perc)
     col_tot1, col_tot2, _ = st.columns(3)
     col_tot1.metric("IVA", f"€ {iva:.2f}")
     col_tot2.metric("TOTALE", f"€ {totale:.2f}")
     
-    # Note
     note = st.text_area("Note", height=100)
-
-    # Controllo fattura esistente
-    fattura_esistente = next((f for f in st.session_state.dati_fatture[tipo] 
-                             if f["numero"] == numero), None)
     
-    if fattura_esistente:
-        st.error(f"⚠️ Fattura {numero} esiste già! Sovrascrivere?")
-        # Popup con scelta sovrascrivi
-    else:
-        # Popup normale salvataggio
-    
-            # === POPUP SALVATAGGIO ===
-            @st.dialog(f"💾 Conferma salvataggio {tipo}", width="500")
-            def dialog_salvataggio(numero, nome, totale):
-                st.markdown(f"**Confermi il salvataggio della fattura?**")
-                st.markdown(f"### 📄 Dettagli:")
-                st.markdown(f"- **Numero:** {numero}")
-                st.markdown(f"- **Cliente/Fornitore:** {nome}")
-                st.markdown(f"- **Totale:** € {totale:.2f}")
+    # === POPUP SALVATAGGIO (AL LIVELLO GIUSTO) ===
+    @st.dialog(f"💾 Conferma salvataggio {tipo}", width="500")
+    def dialog_salvataggio():
+        st.markdown(f"**Confermi il salvataggio della fattura?**")
+        st.markdown(f"### 📄 Dettagli:")
+        st.markdown(f"- **Numero:** {numero}")
+        st.markdown(f"- **Cliente/Fornitore:** {nome}")
+        st.markdown(f"- **Totale:** € {totale:.2f}")
         
         col_c, col_s = st.columns([3,1])
         with col_c:
@@ -165,7 +149,6 @@ elif st.session_state.pagina == "form":
                 st.dialog_close()
         with col_s:
             if st.button("✅ **Salva**", type="primary", use_container_width=True):
-                # SALVA la fattura
                 fattura = {
                     "data": data.strftime("%d/%m/%Y"),
                     "numero": numero,
@@ -181,8 +164,8 @@ elif st.session_state.pagina == "form":
                 }
                 st.session_state.dati_fatture[tipo].append(fattura)
                 salva_dati(st.session_state.dati_fatture)
-                st.session_state.pagina = "storico"  # Vai allo storico
-                st.success("✅ Fattura salvata con successo!")
+                st.session_state.pagina = "storico"
+                st.success("✅ Fattura salvata!")
                 st.balloons()
                 st.rerun()
     
@@ -190,8 +173,7 @@ elif st.session_state.pagina == "form":
     col_btn1, col_btn2, col_btn3 = st.columns(3)
     with col_btn1:
         if st.button("💾 **Salva Fattura**", type="primary", use_container_width=True):
-            # Apre il popup di conferma
-            dialog_salvataggio(numero, nome, totale)
+            dialog_salvataggio()  # ← Chiamata corretta
     
     with col_btn2:
         if st.button("⬅️ Indietro", use_container_width=True):
@@ -201,6 +183,7 @@ elif st.session_state.pagina == "form":
     with col_btn3:
         if st.button("🖨️ Stampa PDF", use_container_width=True):
             st.info("📄 PDF pronto!")
+
 
 # STORICO FATTURE (SEZIONE AGGIORNATA)
 elif st.session_state.pagina == "storico":
