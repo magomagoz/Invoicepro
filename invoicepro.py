@@ -224,7 +224,7 @@ elif st.session_state.pagina == "storico":
     col4.metric("Totale Passive", f"€ {totale_passive:.2f}")
     
     # Bottoni export principali
-    col_exp1, col_exp2, _ = st.columns(2)
+    col_exp1, col_exp2 = st.columns(2)
     with col_exp1:
         if st.button("📊 **Esporta TUTTE Attive in Excel**", type="primary", use_container_width=True):
             df = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
