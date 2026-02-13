@@ -177,16 +177,25 @@ elif st.session_state.pagina == "form":
 
 # STORICO FATTURE (SEZIONE AGGIORNATA)
 elif st.session_state.pagina == "storico":
+    
+    # LOGO - sostituisci "logo.png" con il nome del tuo file
+    st.image("logo.png", use_column_width=False)
+    
     st.header("📋 Storico Fatture")
     
     # Statistiche
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Fatture Attive", len(st.session_state.dati_fatture["Attiva"]))
-    col2.metric("Fatture Passive", len(st.session_state.dati_fatture["Passiva"]))
+    col1, col2 = st.columns(2)
     totale_attive = sum(f.get('totale', 0) for f in st.session_state.dati_fatture['Attiva'])
+    
+    col1.metric("Fatture Attive", len(st.session_state.dati_fatture["Attiva"]))
+    col2.metric("Totale Attivo", f"€ {totale_attive:.2f}")
+
+    st.markdown("---")
+
+    col1, col2 = st.columns(2)
     totale_passive = sum(f.get('totale', 0) for f in st.session_state.dati_fatture['Passiva'])
-    col3.metric("Totale Attive", f"€ {totale_attive:.2f}")
-    col4.metric("Totale Passive", f"€ {totale_passive:.2f}")
+    col1.metric("Fatture Passive", len(st.session_state.dati_fatture["Passiva"]))
+    col2.metric("Totale Passivo", f"€ {totale_passive:.2f}")
     
     # Bottoni export principali
     col_exp1, col_exp2 = st.columns(2)
