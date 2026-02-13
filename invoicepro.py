@@ -120,33 +120,44 @@ def calcola_totali(imponibile, iva_perc):
         return 0.0, 0.0
 
 def create_excel_buffer(df, sheet_name):
-    """Crea Excel professionale"""
+    """Excel con fallback CSV - Robusta"""
     buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-        df.to_excel(writer, sheet_name=sheet_name, index=False)
-        workbook = writer.book
-        worksheet = writer.sheets[sheet_name]
-        
-        # Auto-adjust colonne
-        for column in worksheet.columns:
-            max_length = 0
-            column_letter = column[0].column_letter
-            for cell in column:
-                try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(str(cell.value))
-                except:
-                    pass
-            adjusted_width = min(max_length + 2, 50)
-            worksheet.column_dimensions[column_letter].width = adjusted_width
-        
-        # Intestazioni bold
-        from openpyxl.styles import Font
-        for cell in worksheet[1]:
-            cell.font = Font(bold=True)
     
-    buffer.seek(0)
-    return buffer.getvalue()
+    # Prova Excel
+    try:
+        import openpyxl
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
+            
+            # Formattazione solo se openpyxl funziona
+            workbook = writer.book
+            worksheet = writer.sheets[sheet_name]
+            
+            for column in worksheet.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                worksheet.column_dimensions[column_letter].width = adjusted_width
+            
+            from openpyxl.styles import Font
+            for cell in worksheet[1]:
+                cell.font = Font(bold=True)
+        
+        buffer.seek(0)
+        return buffer.getvalue()
+    
+    except (ImportError, Exception):
+        # Fallback CSV professionale
+        output = io.StringIO()
+        df.to_csv(output, index=False, sep=';', decimal=',')
+        csv_data = output.getvalue().encode('utf-8')
+        return csv_data
 
 def fattura_to_xml(fattura, tipo):
     """Converte fattura in XML FatturaPA semplificato"""
@@ -385,16 +396,23 @@ elif st.session_state.pagina == "storico":
     # Bottoni export generali
     col_ex1, col_ex2 = st.columns(2)
     with col_ex1:
+        # Per Excel buttons
         if st.session_state.dati_fatture["Attiva"]:
             df = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
             buffer = create_excel_buffer(df, "Fatture_Attive")
+            
+            # Rileva tipo file dal buffer
+            mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if len(buffer) > 1000 else "text/csv"
+            file_ext = ".xlsx" if len(buffer) > 1000 else ".csv"
+            
             st.download_button(
-                label="📊 **Excel Attive Complete**",
+                label="📊 **Excel/CSV Attive**",
                 data=buffer,
-                file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}.xlsx",
-                mime="application/vnd.openpyxl.xlsx",
+                file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}{file_ext}",
+                mime=mime_type,
                 use_container_width=True
             )
+
     
     with col_ex2:
         xml_attive = esporta_fatture_xml("Attiva")
@@ -413,19 +431,23 @@ elif st.session_state.pagina == "storico":
     tab1, tab2 = st.tabs(["📤 **Fatturazione Attiva**", "📥 **Fatturazione Passiva**"])
     
     with tab1:
+        # Per Excel buttons
         if st.session_state.dati_fatture["Attiva"]:
-            df_attive = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
+            df = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
+            buffer = create_excel_buffer(df, "Fatture_Attive")
             
-            col1, col2 = st.columns(2)
-            with col1:
-                buffer = create_excel_buffer(df_attive, "Fatture_Attive")
-                st.download_button(
-                    label="⬇️ **Excel**",
-                    data=buffer,
-                    file_name=f"Attive_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
-                    mime="application/vnd.openpyxl.xlsx",
-                    use_container_width=True
-                )
+            # Rileva tipo file dal buffer
+            mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if len(buffer) > 1000 else "text/csv"
+            file_ext = ".xlsx" if len(buffer) > 1000 else ".csv"
+            
+            st.download_button(
+                label="📊 **Excel/CSV Attive**",
+                data=buffer,
+                file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}{file_ext}",
+                mime=mime_type,
+                use_container_width=True
+            )
+
             with col2:
                 csv = df_attive.to_csv(index=False).encode('utf-8')
                 st.download_button(
@@ -441,19 +463,23 @@ elif st.session_state.pagina == "storico":
             st.info("👆 **Nessuna fattura attiva**. Crea la prima dalla Home!")
     
     with tab2:
-        if st.session_state.dati_fatture["Passiva"]:
-            df_passive = pd.DataFrame(st.session_state.dati_fatture["Passiva"])
+        # Per Excel buttons
+        if st.session_state.dati_fatture["Attiva"]:
+            df = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
+            buffer = create_excel_buffer(df, "Fatture_Attive")
             
-            col1, col2 = st.columns(2)
-            with col1:
-                buffer = create_excel_buffer(df_passive, "Fatture_Passive")
-                st.download_button(
-                    label="⬇️ **Excel**",
-                    data=buffer,
-                    file_name=f"Passive_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
-                    mime="application/vnd.openpyxl.xlsx",
-                    use_container_width=True
-                )
+            # Rileva tipo file dal buffer
+            mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if len(buffer) > 1000 else "text/csv"
+            file_ext = ".xlsx" if len(buffer) > 1000 else ".csv"
+            
+            st.download_button(
+                label="📊 **Excel/CSV Attive**",
+                data=buffer,
+                file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}{file_ext}",
+                mime=mime_type,
+                use_container_width=True
+            )
+
             with col2:
                 csv = df_passive.to_csv(index=False).encode('utf-8')
                 st.download_button(
