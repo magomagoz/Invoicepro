@@ -137,6 +137,16 @@ def crea_pdf_fattura_semplice(dati_fattura, tipo="Attiva"):
     
     pdf = FPDF()
     pdf.add_page()
+
+        # Logo dal repo (funziona su Streamlit Cloud)
+    try:
+        pdf.image("logo.png", x=10, y=6, w=30)  # Nel tuo repo
+    except:
+        # Fallback URL
+        pdf.image("https://via.placeholder.com/120x40/2c3e50/ffffff?text=LOGO", x=10, y=6, w=30)
+
+    
+    
     pdf.set_font('Arial', 'B', 20)
     pdf.cell(0, 10, f'FATTURA {tipo}', ln=True, align='C')
     
