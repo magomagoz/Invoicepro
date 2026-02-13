@@ -9,49 +9,41 @@ import io
 COLORE_ATTIVA = "#28a745"   # Verde professionale
 COLORE_PASSIVA = "#007bff"  # Blu professionale (NON ROSSO!)
 
-# 🎨 CSS DEFINITIVO - SOLO KEY (più specifico)
+# 🎨 CSS PERSONALIZZATO PER PULSANTI FATTURAZIONE
 st.markdown("""
 <style>
-/* ATTIVA - VERDE (SOLO key="attiva") */
-[data-testid="stButton"] [data-key="attiva"] button,
-.stKey-attiva button,
-button[kind="attiva"] {
-    background: linear-gradient(135deg, #28a745, #218838) !important;
+/* Pulsante ATTIVA - VERDE */
+.stKey-attiva > div > div > button {
+    background-color: #28a745 !important;
     color: white !important;
-    border: none !important;
     border-radius: 12px !important;
-    font-weight: 700 !important;
-    height: 80px !important;
+    font-weight: bold !important;
+    height: 70px !important;
     font-size: 16px !important;
-    box-shadow: 0 6px 20px rgba(40,167,69,0.4) !important;
-    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3) !important;
+    border: none !important;
 }
-[data-testid="stButton"] [data-key="attiva"] button:hover,
-.stKey-attiva button:hover {
-    background: linear-gradient(135deg, #218838, #1e7e34) !important;
+.stKey-attiva > div > div > button:hover {
+    background-color: #218838 !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 25px rgba(40,167,69,0.6) !important;
+    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4) !important;
 }
 
-/* PASSIVA - BLU (SOLO key="passiva") */
-[data-testid="stButton"] [data-key="passiva"] button,
-.stKey-passiva button,
-button[kind="passiva"] {
+/* Pulsante PASSIVA - BLU */
+.stKey-passiva > div > div > button {
     background: linear-gradient(135deg, #007bff, #0056b3) !important;
     color: white !important;
-    border: none !important;
     border-radius: 12px !important;
-    font-weight: 700 !important;
-    height: 80px !important;
+    font-weight: bold !important;
+    height: 70px !important;
     font-size: 16px !important;
-    box-shadow: 0 6px 20px rgba(0,123,255,0.4) !important;
-    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3) !important;
+    border: none !important;
 }
-[data-testid="stButton"] [data-key="passiva"] button:hover,
-.stKey-passiva button:hover {
+.stKey-passiva > div > div > button:hover {
     background: linear-gradient(135deg, #0056b3, #004085) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 25px rgba(0,123,255,0.6) !important;
+    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4) !important;
 }
 </style>
 """, unsafe_allow_html=True)
