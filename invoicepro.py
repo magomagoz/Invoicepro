@@ -8,14 +8,9 @@ from datetime import datetime
 import pandas as pd
 import io
 
-with open('config.yaml') as file:  # Percorso relativo corretto
-    config = yaml.safe_load(file)
-
-authenticator = stauth.Authenticate(config['credentials'], ...)
-
 # 🔐 LOGIN - INIZIO APP
 try:
-    # Carica config
+    # Carica config (percorso relativo corretto per Cloud)
     with open('config.yaml') as file:
         config = yaml.load(file, Loader=SafeLoader)
     
@@ -28,7 +23,7 @@ try:
     )
     
     name, authentication_status, username = authenticator.login(
-        "🔐 **LOGIN INVOICE PRO**",
+        "🔐 **CREDENZIALI**",
         "main"
     )
     
@@ -43,8 +38,11 @@ try:
         st.sidebar.success(f"👋 Benvenuto **{name}**")
         authenticator.logout("🚪 **Logout**", "sidebar")
 
+except FileNotFoundError:
+    st.error("❌ **File config.yaml mancante o percorso sbagliato** - Controlla root repo GitHub")
+    st.stop()
 except Exception as e:
-    st.error("❌ **File config.yaml mancante**")
+    st.error(f"❌ **Errore config: {str(e)}**")
     st.stop()
 
 def create_excel_buffer(df, sheet_name):  # ← RIMUOVI self
