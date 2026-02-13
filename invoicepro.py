@@ -135,7 +135,7 @@ if st.sidebar.button("📋 **ARCHIVIO FATTURE**", use_container_width=True):
 if st.session_state.pagina == "home":
     
     # LOGO - sostituisci "logo.png" con il nome del tuo file
-    #st.image("logo.png", use_column_width=False)
+    st.image("logo.png", use_column_width=False)
     
     #st.markdown('</div></div>', unsafe_allow_html=True)
     
