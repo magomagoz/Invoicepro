@@ -118,7 +118,7 @@ if 'anagrafiche' not in st.session_state:
 
 # PAGINA ANAGRAFICHE COMPLETA
 elif st.session_state.pagina == "anagrafiche":
-    st.image("logo1.png", use_column_width=False)
+    st.image("banner.png", use_column_width=False)
     st.header("👥 **Gestione Anagrafiche**")
     
     # Tabs per tipo
@@ -310,7 +310,7 @@ if st.session_state.pagina == "home":
     
 # FORM FATTURAZIONE CON CONTROLLO SALVATAGGIO
 elif st.session_state.pagina == "form":
-    st.image("logo1.png", use_column_width=False)
+    st.image("banner.png", use_column_width=False)
     tipo = st.session_state.tipo
     st.header(f"📄 {tipo} - Nuova Fattura")
     
@@ -421,7 +421,7 @@ elif st.session_state.pagina == "form":
 elif st.session_state.pagina == "storico":
     
     # LOGO - sostituisci "logo.png" con il nome del tuo file
-    st.image("logo1.png", use_column_width=False)
+    st.image("banner.png", use_column_width=False)
     
     st.header("📋 Storico Fatture")
     
@@ -548,7 +548,7 @@ with col_xml2:
 
 # PAGINA ANAGRAFICHE
 if st.session_state.pagina == "anagrafiche":
-    st.image("logo1.png", use_column_width=False)
+    st.image("banner.png", use_column_width=False)
     st.header("👥 **Gestione Anagrafiche**")
     
     st.markdown("### 📋 **Clienti**")
