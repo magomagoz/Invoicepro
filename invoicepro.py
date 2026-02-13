@@ -161,7 +161,12 @@ def crea_pdf_fattura_semplice(dati_fattura, tipo="Attiva"):
     pdf.output(dest='S').encode('latin-1')
 
 def create_excel_buffer(df, sheet_name):
-    """Excel con fallback CSV - Robusta"""
+    """Excel/CSV robusto - FUNZIONA SEMPRE"""
+    # Formatta date
+    if 'data' in df.columns:
+        df = df.copy()
+        df['data'] = df['data'].apply(formatta_data_df)
+    
     buffer = io.BytesIO()
     
     # Prova Excel
@@ -169,36 +174,16 @@ def create_excel_buffer(df, sheet_name):
         import openpyxl
         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
             df.to_excel(writer, sheet_name=sheet_name, index=False)
-            
-            # Formattazione solo se openpyxl funziona
-            workbook = writer.book
-            worksheet = writer.sheets[sheet_name]
-            
-            for column in worksheet.columns:
-                max_length = 0
-                column_letter = column[0].column_letter
-                for cell in column:
-                    try:
-                        if len(str(cell.value)) > max_length:
-                            max_length = len(str(cell.value))
-                    except:
-                        pass
-                adjusted_width = min(max_length + 2, 50)
-                worksheet.column_dimensions[column_letter].width = adjusted_width
-            
-            from openpyxl.styles import Font
-            for cell in worksheet[1]:
-                cell.font = Font(bold=True)
         
         buffer.seek(0)
-        return buffer.getvalue()
+        return buffer.getvalue(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx"
     
-    except (ImportError, Exception):
-        # Fallback CSV professionale
-        output = io.StringIO()
-        df.to_csv(output, index=False, sep=';', decimal=',')
-        csv_data = output.getvalue().encode('utf-8')
-        return csv_data
+    except:
+        # CSV fallback (SEMPRE funzionante)
+        csv_buffer = io.StringIO()
+        df.to_csv(csv_buffer, index=False, sep=';', encoding='utf-8')
+        return csv_buffer.getvalue().encode('utf-8'), "text/csv", ".csv"
+
 
 def fattura_to_xml(fattura, tipo):
     """Converte fattura in XML FatturaPA semplificato"""
@@ -471,74 +456,72 @@ elif st.session_state.pagina == "storico":
     # Tabs per tipo
     tab1, tab2 = st.tabs(["📤 **Fatturazione Attiva**", "📥 **Fatturazione Passiva**"])
     
+    # Tab Attive - FIX COMPLETO
     with tab1:
-        # Per Excel buttons
-        if st.session_state.dati_fatture["Attiva"]:
-            df = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
-            buffer = create_excel_buffer(df, "Fatture_Attive")
-            
-            # Rileva tipo file dal buffer
-            mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if len(buffer) > 1000 else "text/csv"
-            file_ext = ".xlsx" if len(buffer) > 1000 else ".csv"
-            
-            st.download_button(
-                label="📊 **Excel/CSV Attive**",
-                data=buffer,
-                file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}{file_ext}",
-                mime=mime_type,
-                use_container_width="stretch"
-            )
-
-            with col2:
-                csv = df_attive.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="📄 **CSV**",
-                    data=csv,
-                    file_name=f"Attive_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-                    mime='text/csv',
-                    use_container_width="stretch"
-                )
-
-        # Prima di st.dataframe():
         if st.session_state.dati_fatture["Attiva"]:
             df_attive = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
             df_attive['data'] = df_attive['data'].apply(formatta_data_df)
             
+            col1, col2 = st.columns(2)
+            with col1:
+                # ✅ EXCEL ROBUSTO
+                buffer_data, mime_type, file_ext = create_excel_buffer(df_attive, "Fatture_Attive")
+                st.download_button(
+                    label="⬇️ **Excel**",
+                    data=buffer_data,
+                    file_name=f"Attive_{datetime.now().strftime('%Y%m%d_%H%M')}{file_ext}",
+                    mime=mime_type,
+                    width="stretch"
+                )
+            with col2:
+                # ✅ CSV ROBUSTO
+                try:
+                    csv_data = df_attive.to_csv(index=False, encoding='utf-8').encode('utf-8')
+                    st.download_button(
+                        label="📄 **CSV**",
+                        data=csv_data,
+                        file_name=f"Attive_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                        mime='text/csv',
+                        width="stretch"
+                    )
+                except:
+                    st.info("⚠️ CSV non disponibile")
+            
             st.dataframe(df_attive, use_container_width=True, hide_index=True)
         else:
-            st.info("👆 **Nessuna fattura attiva**. Crea la prima dalla Home!")
+            st.info("👆 **Nessuna fattura attiva**. Crea la prima!")
     
     with tab2:
-        # Per Excel buttons
-        if st.session_state.dati_fatture["Attiva"]:
-            df = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
-            buffer = create_excel_buffer(df, "Fatture_Attive")
-            
-            # Rileva tipo file dal buffer
-            mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" if len(buffer) > 1000 else "text/csv"
-            file_ext = ".xlsx" if len(buffer) > 1000 else ".csv"
-            
-            st.download_button(
-                label="📊 **Excel/CSV Attive**",
-                data=buffer,
-                file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}{file_ext}",
-                mime=mime_type,
-                use_container_width="stretch"
-            )
-
-            with col2:
-                csv = df_passive.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="📄 **CSV**",
-                    data=csv,
-                    file_name=f"Passive_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-                    mime='text/csv',
-                    use_container_width="stretch"
-                )
+        if st.session_state.dati_fatture["Passiva"]:
+            df_passive = pd.DataFrame(st.session_state.dati_fatture["Passiva"])
             df_passive['data'] = df_passive['data'].apply(formatta_data_df)
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                buffer_data, mime_type, file_ext = create_excel_buffer(df_passive, "Fatture_Passive")
+                st.download_button(
+                    label="⬇️ **Excel**",
+                    data=buffer_data,
+                    file_name=f"Passive_{datetime.now().strftime('%Y%m%d_%H%M')}{file_ext}",
+                    mime=mime_type,
+                    width="stretch"
+                )
+            with col2:
+                try:
+                    csv_data = df_passive.to_csv(index=False, encoding='utf-8').encode('utf-8')
+                    st.download_button(
+                        label="📄 **CSV**",
+                        data=csv_data,
+                        file_name=f"Passive_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                        mime='text/csv',
+                        width="stretch"
+                    )
+                except:
+                    st.info("⚠️ CSV non disponibile")
+            
             st.dataframe(df_passive, use_container_width=True, hide_index=True)
         else:
-            st.info("👆 **Nessuna fattura passiva**. Crea la prima dalla Home!")
+            st.info("👆 **Nessuna fattura passiva**.")
     
     if st.button("🏠 **Torna alla Home**", type="secondary", use_container_width=True):
         st.session_state.pagina = "home"
