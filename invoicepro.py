@@ -190,36 +190,34 @@ elif st.session_state.pagina == "storico":
     col1.metric("Fatture Attive", len(st.session_state.dati_fatture["Attiva"]))
     col2.metric("Totale Attivo", f"€ {totale_attive:.2f}")
 
+    if st.button("📊 **Esporta TUTTE Attive in Excel**", type="primary", use_container_width=True):
+        df = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
+        buffer = self.create_excel_buffer(df, "Fatture_Attive")
+        st.download_button(
+            label="💾 Scarica Excel Attive",
+            data=buffer,
+            file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
     st.markdown("---")
 
     col1, col2 = st.columns(2)
     totale_passive = sum(f.get('totale', 0) for f in st.session_state.dati_fatture['Passiva'])
     col1.metric("Fatture Passive", len(st.session_state.dati_fatture["Passiva"]))
     col2.metric("Totale Passivo", f"€ {totale_passive:.2f}")
-    
-    # Bottoni export principali
-    col_exp1, col_exp2 = st.columns(2)
-    with col_exp1:
-        if st.button("📊 **Esporta TUTTE Attive in Excel**", type="primary", use_container_width=True):
-            df = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
-            buffer = self.create_excel_buffer(df, "Fatture_Attive")
-            st.download_button(
-                label="💾 Scarica Excel Attive",
-                data=buffer,
-                file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-    with col_exp2:
-        if st.button("📊 **Esporta TUTTE Passive in Excel**", type="secondary", use_container_width=True):
-            df = pd.DataFrame(st.session_state.dati_fatture["Passiva"])
-            buffer = self.create_excel_buffer(df, "Fatture_Passive")
-            st.download_button(
-                label="💾 Scarica Excel Passive",
-                data=buffer,
-                file_name=f"Fatture_Passive_{datetime.now().strftime('%Y%m%d')}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-    
+
+    if st.button("📊 **Esporta TUTTE Passive in Excel**", type="secondary", use_container_width=True):
+        df = pd.DataFrame(st.session_state.dati_fatture["Passiva"])
+        buffer = self.create_excel_buffer(df, "Fatture_Passive")
+        st.download_button(
+            label="💾 Scarica Excel Passive",
+            data=buffer,
+            file_name=f"Fatture_Passive_{datetime.now().strftime('%Y%m%d')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+    st.markdown("---")
+
     # Tabs per tipo CON EXPORT DEDICATO
     tab1, tab2 = st.tabs(["📤 Fatturazione Attiva", "📥 Fatturazione Passiva"])
     
