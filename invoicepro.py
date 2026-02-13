@@ -14,6 +14,18 @@ from xml.dom import minidom
 # FUNZIONI UTILITY
 # =============================================================================
 
+def formatta_data_df(data_str):
+    """Converte data per dataframe in dd/mm/yyyy"""
+    try:
+        if pd.isna(data_str):
+            return ""
+        if isinstance(data_str, str) and '/' in data_str:
+            return data_str
+        dt = pd.to_datetime(data_str)
+        return dt.strftime("%d/%m/%Y")
+    except:
+        return str(data_str)
+
 def init_session_state():
     """Inizializza tutto lo stato dell'applicazione"""
     defaults = {
@@ -274,7 +286,8 @@ elif st.session_state.pagina == "form":
     # Form principale
     col1, col2 = st.columns(2)
     with col1:
-        data = st.date_input("**📅 Data**", value=datetime.now())
+        
+        data = st.date_input("**📅 Data**", value=datetime.now(), format="DD/MM/YYYY")
         numero = st.text_input("**🔢 Numero Protocollo**", 
                               value=f"{anno_selezionato}/{len(st.session_state.dati_fatture[tipo])+1}")
         nome = st.text_input("**👤 Cliente/Fornitore**", value="" if tipo == "Attiva" else "Fornitore")
@@ -456,6 +469,11 @@ elif st.session_state.pagina == "storico":
                     mime='text/csv',
                     use_container_width="stretch"
                 )
+
+        # Prima di st.dataframe():
+        if st.session_state.dati_fatture["Attiva"]:
+            df_attive = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
+            df_attive['data'] = df_attive['data'].apply(formatta_data_df)
             
             st.dataframe(df_attive, use_container_width=True, hide_index=True)
         else:
@@ -488,7 +506,7 @@ elif st.session_state.pagina == "storico":
                     mime='text/csv',
                     use_container_width="stretch"
                 )
-            
+            df_passive['data'] = df_passive['data'].apply(formatta_data_df)
             st.dataframe(df_passive, use_container_width=True, hide_index=True)
         else:
             st.info("👆 **Nessuna fattura passiva**. Crea la prima dalla Home!")
