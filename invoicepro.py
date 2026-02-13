@@ -221,17 +221,17 @@ anni = list(range(2020, 2051))
 anno_selezionato = st.sidebar.selectbox("📅 **Anno Fatture**", anni, index=anni.index(2026))
 st.sidebar.markdown("---")
 
-if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
+if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width="stretch"):
     st.session_state.pagina = "home"
     st.rerun()
 
 st.sidebar.markdown("---")
-if st.sidebar.button("📋 **ARCHIVIO FATTURE**", use_container_width=True):
+if st.sidebar.button("📋 **ARCHIVIO FATTURE**", use_container_width="stretch"):
     st.session_state.pagina = "storico"
     st.rerun()
 
 st.sidebar.markdown("---")
-if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
+if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width="stretch"):
     st.session_state.pagina = "anagrafiche"
     st.rerun()
 
@@ -251,7 +251,7 @@ if st.session_state.pagina == "home":
     with col1:
         st.markdown("### 🟢 **FATTURE ATTIVE**")
         st.markdown("*Fatture emesse ai clienti*")
-        if st.button("**➕ INIZIA NUOVA**", key="attiva_go", use_container_width=True):
+        if st.button("**➕ INIZIA NUOVA**", key="attiva_go", use_container_width="stretch"):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Attiva"
             st.session_state.form_dati_salvati = False
@@ -260,7 +260,7 @@ if st.session_state.pagina == "home":
     with col2:
         st.markdown("### 🔵 **FATTURE PASSIVE**")
         st.markdown("*Fatture ricevute dai fornitori*")
-        if st.button("**➕ INIZIA NUOVA**", key="passiva_go", use_container_width=True):
+        if st.button("**➕ INIZIA NUOVA**", key="passiva_go", use_container_width="stretch"):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Passiva"
             st.session_state.form_dati_salvati = False
@@ -277,14 +277,14 @@ elif st.session_state.pagina == "form":
         data = st.date_input("**📅 Data**", value=datetime.now())
         numero = st.text_input("**🔢 Numero Protocollo**", 
                               value=f"{anno_selezionato}/{len(st.session_state.dati_fatture[tipo])+1}")
-        nome = st.text_input("**👤 Cliente/Fornitore**", value="Cliente" if tipo == "Attiva" else "Fornitore")
+        nome = st.text_input("**👤 Cliente/Fornitore**", value="" if tipo == "Attiva" else "Fornitore")
         piva = st.text_input("**🆔 P.IVA / CF**", value="")
     
     with col2:
         imponibile = st.number_input("**💰 Imponibile (€)**", min_value=0.0, step=0.01, format="%.2f")
         iva_perc = st.number_input("**📊 Aliquota IVA (%)**", min_value=0.0, value=22.0, step=0.1)
         pagamento = st.selectbox("**💳 Modalità Pagamento**", 
-                               ["Bonifico 30gg", "Bonifico 60gg", "Anticipo", "Contanti", "Bonifico immediato"])
+                               ["Bonifico 30gg", "Bonifico 60gg", "Anticipo", "Contanti", "Ri.Ba.", "Bonifico immediato"])
     
     # Calcolo totali live
     iva, totale = calcola_totali(imponibile, iva_perc)
@@ -323,10 +323,10 @@ elif st.session_state.pagina == "form":
         
         col_c, col_s = st.columns([3,1])
         with col_c:
-            if st.button("❌ **Annulla**", use_container_width=True):
+            if st.button("❌ **Annulla**", use_container_width="stretch"):
                 st.dialog_close()
         with col_s:
-            if st.button("✅ **SALVA DEFINITIVO**", type="primary", use_container_width=True):
+            if st.button("✅ **SALVA DEFINITIVO**", type="primary", use_container_width="stretch"):
                 # Validazione finale
                 errori = valida_fattura(dati_temp)
                 if errori:
@@ -347,11 +347,11 @@ elif st.session_state.pagina == "form":
     # Pulsanti azione
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        if st.button("💾 **SALVA**", type="primary", use_container_width=True):
+        if st.button("💾 **SALVA**", type="primary", use_container_width="stretch"):
             dialog_salvataggio()
     
     with col2:
-        if st.button("⬅️ **Indietro**", use_container_width=True):
+        if st.button("⬅️ **Indietro**", use_container_width="stretch"):
             if st.session_state.form_dati_salvati or st.button("Conferma uscita senza salvare", key="conferma_uscita"):
                 st.session_state.pagina = "home"
                 st.rerun()
@@ -359,11 +359,11 @@ elif st.session_state.pagina == "form":
                 st.error("⚠️ **SALVA PRIMA** i dati inseriti!")
     
     with col3:
-        if st.button("🖨️ **PDF**", use_container_width=True):
+        if st.button("🖨️ **PDF**", use_container_width="stretch"):
             st.info("📄 PDF in sviluppo...")
     
     with col4:
-        if st.button("📄 **XML**", use_container_width=True):
+        if st.button("📄 **XML**", use_container_width="stretch"):
             if st.session_state.form_dati_salvati:
                 xml_data = fattura_to_xml(st.session_state.form_dati_temp, tipo)
                 st.download_button(
@@ -408,11 +408,10 @@ elif st.session_state.pagina == "storico":
             st.download_button(
                 label="📊 **Excel/CSV Attive**",
                 data=buffer,
-                file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}{file_ext}",
-                mime=mime_type,
-                use_container_width=True
+                file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                width="stretch"  # ✅ NUOVO PARAMETRO
             )
-
     
     with col_ex2:
         xml_attive = esporta_fatture_xml("Attiva")
@@ -422,7 +421,7 @@ elif st.session_state.pagina == "storico":
                 data=xml_attive,
                 file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d_%H%M')}.xml",
                 mime="application/xml",
-                use_container_width=True
+                use_container_width="stretch"
             )
     
     st.markdown("---")
@@ -445,7 +444,7 @@ elif st.session_state.pagina == "storico":
                 data=buffer,
                 file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}{file_ext}",
                 mime=mime_type,
-                use_container_width=True
+                use_container_width="stretch"
             )
 
             with col2:
@@ -455,7 +454,7 @@ elif st.session_state.pagina == "storico":
                     data=csv,
                     file_name=f"Attive_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
                     mime='text/csv',
-                    use_container_width=True
+                    use_container_width="stretch"
                 )
             
             st.dataframe(df_attive, use_container_width=True, hide_index=True)
@@ -477,7 +476,7 @@ elif st.session_state.pagina == "storico":
                 data=buffer,
                 file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d')}{file_ext}",
                 mime=mime_type,
-                use_container_width=True
+                use_container_width="stretch"
             )
 
             with col2:
@@ -487,7 +486,7 @@ elif st.session_state.pagina == "storico":
                     data=csv,
                     file_name=f"Passive_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
                     mime='text/csv',
-                    use_container_width=True
+                    use_container_width="stretch"
                 )
             
             st.dataframe(df_passive, use_container_width=True, hide_index=True)
@@ -510,17 +509,17 @@ elif st.session_state.pagina == "anagrafiche":
         with st.form("form_cliente"):
             col1, col2 = st.columns(2)
             with col1:
-                rag_sociale = st.text_input("**Ragione Sociale**", placeholder="Mario Rossi Srl")
-                nome_rapp = st.text_input("**Nome Rappresentante**", placeholder="Mario Rossi")
-                piva = st.text_input("**P.IVA**", placeholder="IT12345678901")
-                cf = st.text_input("**Codice Fiscale**", placeholder="RSSMRA80A01H501Z")
+                rag_sociale = st.text_input("**Ragione Sociale**", placeholder="")
+                nome_rapp = st.text_input("**Nome Rappresentante**", placeholder="")
+                piva = st.text_input("**P.IVA**", placeholder="")
+                cf = st.text_input("**Codice Fiscale**", placeholder="")
             with col2:
-                indirizzo = st.text_input("**Indirizzo**", placeholder="Via Roma 123")
-                cap = st.text_input("**CAP**", placeholder="00100")
-                citta = st.text_input("**Città**", placeholder="Roma")
+                indirizzo = st.text_input("**Indirizzo**", placeholder="")
+                cap = st.text_input("**CAP**", placeholder="")
+                citta = st.text_input("**Città**", placeholder="")
                 prov = st.selectbox("**Provincia**", ["RM", "MI", "NA", "TO", "FI", "BO", "PR", "PD"])
-                tel = st.text_input("**Telefono**", placeholder="06-1234567")
-                email = st.text_input("**Email**", placeholder="info@mariorossi.it")
+                tel = st.text_input("**Telefono**", placeholder="")
+                email = st.text_input("**Email**", placeholder="")
             
             col_submit, col_cancel = st.columns([3,1])
             with col_submit:
