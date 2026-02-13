@@ -9,42 +9,32 @@ import io
 COLORE_ATTIVA = "#28a745"   # Verde professionale
 COLORE_PASSIVA = "#007bff"  # Blu professionale (NON ROSSO!)
 
-# 🎨 CSS PERSONALIZZATO PER PULSANTI FATTURAZIONE
+# CSS per logo in alto a destra
 st.markdown("""
 <style>
-/* Pulsante ATTIVA - VERDE */
-.stKey-attiva > div > div > button {
-    background-color: #28a745 !important;
-    color: white !important;
-    border-radius: 12px !important;
-    font-weight: bold !important;
-    height: 70px !important;
-    font-size: 16px !important;
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3) !important;
-    border: none !important;
-}
-.stKey-attiva > div > div > button:hover {
-    background-color: #218838 !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4) !important;
-}
-
-/* Pulsante PASSIVA - BLU */
-.stKey-passiva > div > div > button {
-    background: linear-gradient(135deg, #007bff, #0056b3) !important;
-    color: white !important;
-    border-radius: 12px !important;
-    font-weight: bold !important;
-    height: 70px !important;
-    font-size: 16px !important;
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3) !important;
-    border: none !important;
-}
-.stKey-passiva > div > div > button:hover {
-    background: linear-gradient(135deg, #0056b3, #004085) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4) !important;
-}
+    .main-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+        position: relative;
+    }
+    .logo-container {
+        position: absolute;
+        top: 1rem;
+        right: 2rem;
+        z-index: 1000;
+    }
+    .logo-container img {
+        max-height: 60px;
+        width: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .title-container {
+        flex: 1;
+        text-align: center;
+    }
 </style>
 """, unsafe_allow_html=True)
 
