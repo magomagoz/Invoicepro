@@ -112,11 +112,8 @@ elif st.session_state.pagina == "form":
     # LOGO - sostituisci "logo.png" con il nome del tuo file
     st.image("logo1.png", use_column_width=False)
     
-    #st.markdown('</div></div>', unsafe_allow_html=True)
-
-    
     tipo = st.session_state.tipo
-    st.header(f"📄 Nuova Fattura {tipo}")
+    st.header(f"📄 {tipo} - Nuova Fattura")
     
     # Form in due colonne
     col1, col2 = st.columns(2)
@@ -132,7 +129,7 @@ elif st.session_state.pagina == "form":
         imponibile = st.number_input("Imponibile (€)", min_value=0.0, step=0.01, format="%.2f")
         iva_perc = st.number_input("Aliquota IVA (%)", min_value=0.0, value=22.0, step=0.1)
         pagamento = st.selectbox("Modalità Pagamento", 
-                               ["Bonifico 30gg", "Bonifico 60gg", "RI.BA.", "Anticipo", "Saldo", "Contanti"])
+                               ["Bonifico 30gg", "Bonifico 60gg", "Anticipo", "Contanti"])
     
     # Calcolo totali live
     iva, totale = calcola_totali(imponibile, iva_perc)
@@ -143,28 +140,48 @@ elif st.session_state.pagina == "form":
     # Note
     note = st.text_area("Note", height=100)
     
+    # === POPUP SALVATAGGIO ===
+    @st.dialog(f"💾 Conferma salvataggio {tipo}", width="500")
+    def dialog_salvataggio(numero, nome, totale):
+        st.markdown(f"**Confermi il salvataggio della fattura?**")
+        st.markdown(f"### 📄 Dettagli:")
+        st.markdown(f"- **Numero:** {numero}")
+        st.markdown(f"- **Cliente/Fornitore:** {nome}")
+        st.markdown(f"- **Totale:** € {totale:.2f}")
+        
+        col_c, col_s = st.columns([3,1])
+        with col_c:
+            if st.button("❌ **Annulla**", use_container_width=True):
+                st.dialog_close()
+        with col_s:
+            if st.button("✅ **Salva**", type="primary", use_container_width=True):
+                # SALVA la fattura
+                fattura = {
+                    "data": data.strftime("%d/%m/%Y"),
+                    "numero": numero,
+                    "cliente_fornitore": nome,
+                    "piva": piva,
+                    "imponibile": float(imponibile),
+                    "iva_perc": float(iva_perc),
+                    "iva": float(iva),
+                    "totale": float(totale),
+                    "pagamento": pagamento,
+                    "note": note,
+                    "timestamp": datetime.now().isoformat()
+                }
+                st.session_state.dati_fatture[tipo].append(fattura)
+                salva_dati(st.session_state.dati_fatture)
+                st.session_state.pagina = "storico"  # Vai allo storico
+                st.success("✅ Fattura salvata con successo!")
+                st.balloons()
+                st.rerun()
+    
     # Pulsanti azione
     col_btn1, col_btn2, col_btn3 = st.columns(3)
     with col_btn1:
-        if st.button("💾 Salva Fattura", type="primary", use_container_width=True):
-            fattura = {
-                "data": data.strftime("%d/%m/%Y"),
-                "numero": numero,
-                "cliente_fornitore": nome,
-                "piva": piva,
-                "imponibile": float(imponibile),
-                "iva_perc": float(iva_perc),
-                "iva": float(iva),
-                "totale": float(totale),
-                "pagamento": pagamento,
-                "note": note,
-                "timestamp": datetime.now().isoformat()
-            }
-            st.session_state.dati_fatture[tipo].append(fattura)
-            salva_dati(st.session_state.dati_fatture)
-            st.success("✅ Fattura salvata!")
-            st.balloons()
-            st.rerun()
+        if st.button("💾 **Salva Fattura**", type="primary", use_container_width=True):
+            # Apre il popup di conferma
+            dialog_salvataggio(numero, nome, totale)
     
     with col_btn2:
         if st.button("⬅️ Indietro", use_container_width=True):
@@ -173,7 +190,7 @@ elif st.session_state.pagina == "form":
     
     with col_btn3:
         if st.button("🖨️ Stampa PDF", use_container_width=True):
-            st.info("📄 PDF pronto! (Implementa reportlab per export reale)")
+            st.info("📄 PDF pronto!")
 
 # STORICO FATTURE (SEZIONE AGGIORNATA)
 elif st.session_state.pagina == "storico":
