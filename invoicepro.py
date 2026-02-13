@@ -269,7 +269,7 @@ if st.session_state.pagina == "home":
 elif st.session_state.pagina == "form":
     st.image("banner1.png", use_column_width=False)
     tipo = st.session_state.tipo
-    st.header(f"📄 **{tipo} - Nuova Fattura**")
+    st.header(f"📄 **Nuova Fattura {tipo}**")
     
     # Form principale
     col1, col2 = st.columns(2)
