@@ -517,7 +517,7 @@ elif st.session_state.pagina == "anagrafiche":
                 indirizzo = st.text_input("**Indirizzo**", placeholder="")
                 cap = st.text_input("**CAP**", placeholder="")
                 citta = st.text_input("**Città**", placeholder="")
-                prov = st.selectbox("**Provincia**", ["RM", "MI", "NA", "TO", "FI", "BO", "PR", "PD"])
+                prov = st.selectbox("**Provincia**", ["RM", "LT", "RI", "VT", "FI", "BO", "FR", "AQ"])
                 tel = st.text_input("**Telefono**", placeholder="")
                 email = st.text_input("**Email**", placeholder="")
             
@@ -559,17 +559,17 @@ elif st.session_state.pagina == "anagrafiche":
         with st.form("form_fornitore"):
             col1, col2 = st.columns(2)
             with col1:
-                rag_sociale_f = st.text_input("**Ragione Sociale**", placeholder="Fornitore XYZ")
-                nome_rapp_f = st.text_input("**Nome Rappresentante**", placeholder="Luca Verdi")
-                piva_f = st.text_input("**P.IVA**", placeholder="IT98765432109")
-                cf_f = st.text_input("**Codice Fiscale**", placeholder="VRDL CU85M12L219X")
+                rag_sociale_f = st.text_input("**Ragione Sociale**", placeholder="")
+                nome_rapp_f = st.text_input("**Nome Rappresentante**", placeholder="")
+                piva_f = st.text_input("**P.IVA**", placeholder="")
+                cf_f = st.text_input("**Codice Fiscale**", placeholder="")
             with col2:
-                indirizzo_f = st.text_input("**Indirizzo**", placeholder="Via Milano 456")
-                cap_f = st.text_input("**CAP**", placeholder="20100")
-                citta_f = st.text_input("**Città**", placeholder="Milano")
-                prov_f = st.selectbox("**Provincia**", ["RM", "MI", "NA", "TO", "FI", "BO", "PR", "PD"])
-                tel_f = st.text_input("**Telefono**", placeholder="02-9876543")
-                email_f = st.text_input("**Email**", placeholder="ordini@fornitorexyz.it")
+                indirizzo_f = st.text_input("**Indirizzo**", placeholder="")
+                cap_f = st.text_input("**CAP**", placeholder="")
+                citta_f = st.text_input("**Città**", placeholder="")
+                prov_f = st.selectbox("**Provincia**", ["RM", "LT", "RI", "VT", "FI", "BO", "FR", "AQ"])
+                tel_f = st.text_input("**Telefono**", placeholder="")
+                email_f = st.text_input("**Email**", placeholder="")
             
             col_submit_f, col_cancel_f = st.columns([3,1])
             with col_submit_f:
@@ -630,6 +630,6 @@ elif st.session_state.pagina == "anagrafiche":
         else:
             st.info("👆 **Nessun fornitore registrato**")
     
-    if st.button("⬅️ **Torna al Menu Principale**", type="secondary", use_container_width=True):
+    if st.button("⬅️ **Torna al Menu Principale**", type="secondary", use_container_width="stretch"):
         st.session_state.pagina = "home"
         st.rerun()
