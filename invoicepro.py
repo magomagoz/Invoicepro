@@ -139,6 +139,16 @@ elif st.session_state.pagina == "form":
     
     # Note
     note = st.text_area("Note", height=100)
+
+    # Controllo fattura esistente
+    fattura_esistente = next((f for f in st.session_state.dati_fatture[tipo] 
+                             if f["numero"] == numero), None)
+    
+    if fattura_esistente:
+        st.error(f"⚠️ Fattura {numero} esiste già! Sovrascrivere?")
+        # Popup con scelta sovrascrivi
+    else:
+        # Popup normale salvataggio
     
     # === POPUP SALVATAGGIO ===
     @st.dialog(f"💾 Conferma salvataggio {tipo}", width="500")
