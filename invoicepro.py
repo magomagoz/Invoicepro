@@ -51,6 +51,198 @@ def carica_dati():
             return json.load(f)
     return {"Attiva": [], "Passiva": []}
 
+def fattura_to_xml(fattura, tipo):
+    """Converte singola fattura JSON → XML FatturaPA semplificato"""
+    import xml.etree.ElementTree as ET
+    from xml.dom import minidom
+    
+    # Root elemento
+    fattura_xml = ET.Element("Fattura", tipo=tipo)
+    
+    # Dati generali
+    generali = ET.SubElement(fattura_xml, "Generale")
+    ET.SubElement(generali, "Data").text = fattura["data"]
+    ET.SubElement(generali, "Numero").text = fattura["numero"]
+    ET.SubElement(generali, "Totale").text = f"{fattura['totale']:.2f}"
+    
+    # Cliente/Fornitore
+    controparte = ET.SubElement(fattura_xml, "Controparte")
+    ET.SubElement(controparte, "RagioneSociale").text = fattura["cliente_fornitore"]
+    ET.SubElement(controparte, "PIVA").text = fattura["piva"]
+    
+    # Importi
+    importi = ET.SubElement(fattura_xml, "Importi")
+    ET.SubElement(importi, "Imponibile").text = f"{fattura['imponibile']:.2f}"
+    ET.SubElement(importi, "IVA").text = f"{fattura['iva']:.2f}"
+    ET.SubElement(importi, "IVA_Perc").text = f"{fattura['iva_perc']}%"
+    
+    # Pagamento
+    ET.SubElement(fattura_xml, "Pagamento").text = fattura["pagamento"]
+    
+    # Note
+    ET.SubElement(fattura_xml, "Note").text = fattura["note"]
+    
+    # Pretty print XML
+    rough_string = ET.tostring(fattura_xml, 'unicode')
+    reparsed = minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ")
+
+def esporta_fatture_xml(tipo_fatture):
+    """Esporta TUTTE le fatture in un unico file XML"""
+    import xml.etree.ElementTree as ET
+    from xml.dom import minidom
+    
+    root = ET.Element("Fatture")
+    for fattura in st.session_state.dati_fatture[tipo_fatture]:
+        fattura_xml = ET.fromstring(fattura_to_xml(fattura, tipo_fatture[0].upper()))
+        root.append(fattura_xml)
+    
+    rough_string = ET.tostring(root, 'unicode')
+    reparsed = minidom.parseString(rough_string)
+    return reparsed.toprettyxml(indent="  ").encode('utf-8')
+
+# 🔄 FUNZIONI ANAGRAFICHE (AGGIUNGI dopo create_excel_buffer)
+def carica_anagrafiche():
+    if os.path.exists("anagrafiche.json"):
+        with open("anagrafiche.json", "r") as f:
+            return json.load(f)
+    return {"clienti": [], "fornitori": []}
+
+def salva_anagrafiche(dati):
+    with open("anagrafiche.json", "w") as f:
+        json.dump(dati, f, indent=4, ensure_ascii=False)
+
+# Inizializza anagrafiche
+if 'anagrafiche' not in st.session_state:
+    st.session_state.anagrafiche = carica_anagrafiche()
+
+# PAGINA ANAGRAFICHE COMPLETA
+elif st.session_state.pagina == "anagrafiche":
+    st.image("logo1.png", use_column_width=False)
+    st.header("👥 **Gestione Anagrafiche**")
+    
+    # Tabs per tipo
+    tab1, tab2 = st.tabs(["➕ **NUOVO CLIENTE**", "➕ **NUOVO FORNITORE**"])
+    
+    with tab1:  # CLIENTE
+        st.markdown("### 📝 **Dati Cliente**")
+        with st.form("form_cliente"):
+            col1, col2 = st.columns(2)
+            with col1:
+                rag_sociale = st.text_input("**Ragione Sociale**", placeholder="Mario Rossi Srl")
+                nome_rapp = st.text_input("**Nome Rappresentante**", placeholder="Mario Rossi")
+                piva = st.text_input("**P.IVA**", placeholder="IT12345678901")
+                cf = st.text_input("**Codice Fiscale**", placeholder="RSSMRA80A01H501Z")
+            with col2:
+                indirizzo = st.text_input("**Indirizzo**", placeholder="Via Roma 123")
+                cap = st.text_input("**CAP**", placeholder="00100")
+                citta = st.text_input("**Città**", placeholder="Roma")
+                prov = st.selectbox("**Provincia**", ["RM", "MI", "NA", "TO", "FI"])
+                tel = st.text_input("**Telefono**", placeholder="06-1234567")
+                email = st.text_input("**Email**", placeholder="info@mariorossi.it")
+            
+            col_submit, col_cancel = st.columns([3,1])
+            with col_submit:
+                submitted = st.form_submit_button("💾 **SALVA CLIENTE**", type="primary")
+            with col_cancel:
+                if st.form_submit_button("❌ **ANNULLA**"):
+                    st.rerun()
+            
+            if submitted and rag_sociale:
+                nuovo_cliente = {
+                    "ragione_sociale": rag_sociale,
+                    "rappresentante": nome_rapp,
+                    "piva": piva,
+                    "cf": cf,
+                    "indirizzo": indirizzo,
+                    "cap": cap,
+                    "citta": citta,
+                    "provincia": prov,
+                    "telefono": tel,
+                    "email": email,
+                    "timestamp": datetime.now().isoformat()
+                }
+                st.session_state.anagrafiche["clienti"].append(nuovo_cliente)
+                salva_anagrafiche(st.session_state.anagrafiche)
+                st.success("✅ **Cliente salvato!**")
+                st.balloons()
+                st.rerun()
+    
+    with tab2:  # FORNITORE  
+        st.markdown("### 📝 **Dati Fornitore**")
+        with st.form("form_fornitore"):
+            col1, col2 = st.columns(2)
+            with col1:
+                rag_sociale_f = st.text_input("**Ragione Sociale**", placeholder="Fornitore XYZ")
+                nome_rapp_f = st.text_input("**Nome Rappresentante**", placeholder="Luca Verdi")
+                piva_f = st.text_input("**P.IVA**", placeholder="IT98765432109")
+                cf_f = st.text_input("**Codice Fiscale**", placeholder="VRDL CU85M12L219X")
+            with col2:
+                indirizzo_f = st.text_input("**Indirizzo**", placeholder="Via Milano 456")
+                cap_f = st.text_input("**CAP**", placeholder="20100")
+                citta_f = st.text_input("**Città**", placeholder="Milano")
+                prov_f = st.selectbox("**Provincia**", ["RM", "MI", "NA", "TO", "FI"])
+                tel_f = st.text_input("**Telefono**", placeholder="02-9876543")
+                email_f = st.text_input("**Email**", placeholder="ordini@fornitorexyz.it")
+            
+            col_submit_f, col_cancel_f = st.columns([3,1])
+            with col_submit_f:
+                submitted_f = st.form_submit_button("💾 **SALVA FORNITORE**", type="primary")
+            with col_cancel_f:
+                if st.form_submit_button("❌ **ANNULLA**"):
+                    st.rerun()
+            
+            if submitted_f and rag_sociale_f:
+                nuovo_fornitore = {
+                    "ragione_sociale": rag_sociale_f,
+                    "rappresentante": nome_rapp_f,
+                    "piva": piva_f,
+                    "cf": cf_f,
+                    "indirizzo": indirizzo_f,
+                    "cap": cap_f,
+                    "citta": citta_f,
+                    "provincia": prov_f,
+                    "telefono": tel_f,
+                    "email": email_f,
+                    "timestamp": datetime.now().isoformat()
+                }
+                st.session_state.anagrafiche["fornitori"].append(nuovo_fornitore)
+                salva_anagrafiche(st.session_state.anagrafiche)
+                st.success("✅ **Fornitore salvato!**")
+                st.balloons()
+                st.rerun()
+    
+    # ELENCO ANAGRAFICHE
+    st.markdown("---")
+    st.subheader("📋 **Elenco Anagrafiche**")
+    
+    col_list1, col_list2 = st.columns(2)
+    
+    with col_list1:
+        st.markdown("**🏢 CLIENTI**")
+        if st.session_state.anagrafiche["clienti"]:
+            for i, cliente in enumerate(st.session_state.anagrafiche["clienti"][:10]):
+                with st.expander(f"{cliente['ragione_sociale']} - {cliente['piva']}", expanded=False):
+                    st.write(f"📧 {cliente['email']} | 📍 {cliente['citta']} ({cliente['provincia']})")
+                    st.caption(f"Aggiunto: {cliente['timestamp'][:10]}")
+        else:
+            st.info("👆 Nessun cliente registrato")
+    
+    with col_list2:
+        st.markdown("**🏭 FORNITORI**")
+        if st.session_state.anagrafiche["fornitori"]:
+            for i, fornitore in enumerate(st.session_state.anagrafiche["fornitori"][:10]):
+                with st.expander(f"{fornitore['ragione_sociale']} - {fornitore['piva']}", expanded=False):
+                    st.write(f"📧 {fornitore['email']} | 📍 {fornitore['citta']} ({fornitore['provincia']})")
+                    st.caption(f"Aggiunto: {fornitore['timestamp'][:10]}")
+        else:
+            st.info("👆 Nessun fornitore registrato")
+    
+    # Torna indietro
+    if st.button("⬅️ **Torna al Menu Principale**", type="secondary"):
+        st.session_state.pagina = "home"
+        st.rerun()
+
 def salva_dati(dati):
     with open("fatture.json", "w") as f:
         json.dump(dati, f, indent=4)
@@ -186,6 +378,27 @@ elif st.session_state.pagina == "form":
         if st.button("🖨️ Stampa PDF", use_container_width=True):
             st.info("📄 PDF pronto!")
 
+    with col_btn4:  # Nuova colonna
+        if st.button("📄 **Esporta XML**", use_container_width=True):
+            xml_single = fattura_to_xml({
+                "data": data.strftime("%d/%m/%Y"),
+                "numero": numero,
+                "cliente_fornitore": nome,
+                "piva": piva,
+                "imponibile": float(imponibile),
+                "iva": float(iva),
+                "iva_perc": float(iva_perc),
+                "totale": float(totale),
+                "pagamento": pagamento,
+                "note": note
+            }, tipo)
+            st.download_button(
+                label="💾 Scarica XML",
+                data=xml_single,
+                file_name=f"{numero}_{tipo}.xml",
+                mime="application/xml"
+            )
+
 
 # STORICO FATTURE (SEZIONE AGGIORNATA)
 elif st.session_state.pagina == "storico":
@@ -292,6 +505,29 @@ elif st.session_state.pagina == "storico":
             st.dataframe(df_passive, use_container_width=True, hide_index=True)
         else:
             st.info("👆 Nessuna fattura passiva. Crea la prima dalla Home!")
+
+# Bottoni XML (AGGIUNGI dopo Excel)
+col_xml1, col_xml2 = st.columns(2)
+
+with col_xml1:
+    xml_attive = esporta_fatture_xml("Attiva")
+    st.download_button(
+        label="📄 **XML Attive**",
+        data=xml_attive,
+        file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d_%H%M')}.xml",
+        mime="application/xml",
+        use_container_width=True
+    )
+
+with col_xml2:
+    xml_passive = esporta_fatture_xml("Passiva")
+    st.download_button(
+        label="📄 **XML Passive**", 
+        data=xml_passive,
+        file_name=f"Fatture_Passive_{datetime.now().strftime('%Y%m%d_%H%M')}.xml",
+        mime="application/xml",
+        use_container_width=True
+    )
 
 # PAGINA ANAGRAFICHE
 elif st.session_state.pagina == "anagrafiche":
