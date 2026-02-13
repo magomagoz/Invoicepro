@@ -2,8 +2,8 @@ credentials:
   usernames:
     admin:
       email: logiservices2000@gmail.com
-      name: Giuseppe Arminio
-      password: logiservices2000  # Genera dopo
+      name: Arminio
+      password: Arminio  # Genera dopo
 
 cookie:
   name: invoicepro
