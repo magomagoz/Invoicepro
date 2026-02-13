@@ -272,15 +272,18 @@ st.sidebar.markdown("---")
 
 if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
     st.session_state.pagina = "home"
+st.sidebar.markdown("---")
 if st.sidebar.button("📋 **ARCHIVIO FATTURE**", use_container_width=True):
     st.session_state.pagina = "storico"
+st.sidebar.markdown("---")
 if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
     st.session_state.pagina = "anagrafiche"
 st.sidebar.info(f"**Anno: {anno_selezionato}**")
+st.sidebar.markdown("---")
 
 # ✅ HOME (CON if)
 if st.session_state.pagina == "home":
-    st.image("logo1.png", use_column_width=False)
+    st.image("banner.png", use_column_width=False)
     st.title("💼 Fatturazione aziendale 💼")
     st.markdown("---")
     
@@ -302,7 +305,7 @@ if st.session_state.pagina == "home":
     
 # FORM FATTURAZIONE - VERSIONE CORRETTA
 elif st.session_state.pagina == "form":
-    st.image("logo.png", use_column_width=False)
+    st.image("banner.png", use_column_width=False)
     
     tipo = st.session_state.tipo
     st.header(f"📄 {tipo} - Nuova Fattura")
