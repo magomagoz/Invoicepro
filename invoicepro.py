@@ -72,50 +72,41 @@ if 'dati_fatture' not in st.session_state:
 if 'pagina' not in st.session_state:
     st.session_state.pagina = "home"
 
-# Sidebar COMPLETA con Anno + Anagrafiche
+# ✅ SIDEBAR (CORRETTA - all'inizio dopo init)
 st.sidebar.title("📊 **CONFIGURAZIONE**")
-
-# === SELETTORE ANNO (2020-2050) ===
 anni = list(range(2020, 2051))
-anno_selezionato = st.sidebar.selectbox(
-    "📅 **Anno Fatture**", 
-    anni, 
-    index=anni.index(2026),  # Default 2026
-    help="Filtra fatture per anno"
-)
+anno_selezionato = st.sidebar.selectbox("📅 **Anno Fatture**", anni, index=anni.index(2026))
 st.sidebar.markdown("---")
 
-# Navigazione esistente
 if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
     st.session_state.pagina = "home"
-
 if st.sidebar.button("📋 **ARCHIVIO FATTURE**", use_container_width=True):
     st.session_state.pagina = "storico"
-
-# === NUOVO PULSANTE ANAGRAFICHE ===
 if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
     st.session_state.pagina = "anagrafiche"
+st.sidebar.info(f"**Anno: {anno_selezionato}**")
 
-# Info anno selezionato
-st.sidebar.info(f"**Filtro attivo: {anno_selezionato}**")
+# ✅ HOME (CON if)
+if st.session_state.pagina == "home":
+    st.image("logo1.png", use_column_width=False)
+    st.title("💼 Fatturazione aziendale 💼")
+    st.markdown("---")
     
-col1, col2 = st.columns(2, gap="large")
-    
-with col1:
-    st.markdown("### 🟢 **FATTURE ATTIVE**")
-    st.markdown("*Fatture emesse ai clienti*")
-    if st.button("**INIZIA →**", key="attiva_go", use_container_width=True):
-        st.session_state.pagina = "form"
-        st.session_state.tipo = "Attiva"
-        st.rerun()
-    
-with col2:
-    st.markdown("### 🔵 **FATTURE PASSIVE**")
-    st.markdown("*Fatture ricevute dai fornitori*")
-    if st.button("**INIZIA →**", key="passiva_go", use_container_width=True):
-        st.session_state.pagina = "form"
-        st.session_state.tipo = "Passiva"
-        st.rerun()
+    col1, col2 = st.columns(2, gap="large")
+    with col1:
+        st.markdown("### 🟢 **FATTURE ATTIVE**")
+        st.markdown("*Fatture emesse ai clienti*")
+        if st.button("**INIZIA →**", key="attiva_go", use_container_width=True):
+            st.session_state.pagina = "form"
+            st.session_state.tipo = "Attiva"
+            st.rerun()
+    with col2:
+        st.markdown("### 🔵 **FATTURE PASSIVE**")
+        st.markdown("*Fatture ricevute dai fornitori*")
+        if st.button("**INIZIA →**", key="passiva_go", use_container_width=True):
+            st.session_state.pagina = "form"
+            st.session_state.tipo = "Passiva"
+            st.rerun()
     
 # FORM FATTURAZIONE - VERSIONE CORRETTA
 elif st.session_state.pagina == "form":
