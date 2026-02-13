@@ -71,7 +71,7 @@ def create_excel_buffer(df, sheet_name):
 
 # Configurazione pagina
 st.set_page_config(
-    page_title="Fatturazione Attiva/Passiva",
+    page_title="Invoice Pro",
     page_icon="💼",
     layout="wide"
 )
