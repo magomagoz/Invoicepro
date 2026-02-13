@@ -244,7 +244,7 @@ st.sidebar.markdown("---")
 
 if st.session_state.pagina == "home":
     st.image("banner1.png", use_column_width=False)
-    st.title("💼 **Fatturazione Aziendale Professionale** 💼")
+    st.title("💼 **Fatturazione Aziendale** 💼")
     st.markdown("---")
     
     col1, col2 = st.columns(2, gap="large")
