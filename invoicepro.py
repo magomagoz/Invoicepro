@@ -5,39 +5,6 @@ from datetime import datetime
 import pandas as pd
 import io
 
-# Definisci colori CORRETTI
-COLORE_ATTIVA = "#28a745"   # Verde professionale
-COLORE_PASSIVA = "#007bff"  # Blu professionale (NON ROSSO!)
-
-# CSS per logo in alto a destra
-st.markdown("""
-<style>
-    .main-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 2rem;
-        position: relative;
-    }
-    .logo-container {
-        position: absolute;
-        top: 1rem;
-        right: 2rem;
-        z-index: 1000;
-    }
-    .logo-container img {
-        max-height: 60px;
-        width: auto;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .title-container {
-        flex: 1;
-        text-align: center;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 def create_excel_buffer(df, sheet_name):
     """Crea buffer Excel professionale con formattazione"""
     buffer = io.BytesIO()
@@ -123,27 +90,25 @@ if st.session_state.pagina == "home":
     
     st.markdown("---")
 
-    # Layout principale con sidebar
+# SOSTITUISCI la sezione HOME con questo:
+if st.session_state.pagina == "home":
     st.title("💼 Fatturazione aziendale 💼")
     st.markdown("---")
-
-    
-    st.markdown("*Scegli il tipo di fatturazione*")
     
     col1, col2 = st.columns(2, gap="large")
-
+    
     with col1:
-        if st.button("📤 **FATTURAZIONE ATTIVA**  \n_Fatture emesse ai clienti_", 
-                    key="attiva",  # ← OBBLIGATORIO!
-                    use_container_width=True):
+        st.markdown("### 🟢 **FATTURAZIONE ATTIVA**")
+        st.markdown("*Fatture emesse ai clienti*")
+        if st.button("**INIZIA →**", key="attiva_go", use_container_width=True):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Attiva"
             st.rerun()
     
     with col2:
-        if st.button("📥 **FATTURAZIONE PASSIVA**  \n_Fatture ricevute dai fornitori_", 
-                    key="passiva",  # ← OBBLIGATORIO!
-                    use_container_width=True):
+        st.markdown("### 🔵 **FATTURAZIONE PASSIVA**")
+        st.markdown("*Fatture ricevute dai fornitori*")
+        if st.button("**INIZIA →**", key="passiva_go", use_container_width=True):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Passiva"
             st.rerun()
