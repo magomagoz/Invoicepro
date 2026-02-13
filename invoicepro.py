@@ -8,6 +8,11 @@ from datetime import datetime
 import pandas as pd
 import io
 
+import streamlit as st
+import streamlit_authenticator as stauth
+import yaml
+from yaml.loader import SafeLoader
+
 # 🔐 LOGIN - INIZIO APP
 try:
     with open('config.yaml') as file:
@@ -20,22 +25,26 @@ try:
         config['cookie']['expiry_days']
     )
     
-    # ✅ NUOVA SINTASSI - solo location='main'
-    name, authentication_status, username = authenticator.login(location="main")
+    # ✅ LOGIN - Salva in session_state
+    authenticator.login(location="main")
     
-    if authentication_status == False:
+    # ✅ LEGGI DA SESSION STATE (non unpack!)
+    if st.session_state["authentication_status"]:
+        st.sidebar.success(f"👋 Benvenuto **{st.session_state['name']}**")
+        authenticator.logout("🚪 **Logout**", "sidebar")
+        
+    elif st.session_state["authentication_status"] == False:
         st.error("❌ **Credenziali errate**")
         st.stop()
-    elif authentication_status == None:
+        
+    elif st.session_state["authentication_status"] is None:
         st.warning("⚠️ **Inserisci username/password**")
         st.stop()
-    elif authentication_status:
-        st.sidebar.success(f"👋 Benvenuto **{name}**")
-        authenticator.logout("🚪 **Logout**", "sidebar")
 
 except Exception as e:
     st.error(f"❌ **Errore: {str(e)}**")
     st.stop()
+
 
 
 def create_excel_buffer(df, sheet_name):  # ← RIMUOVI self
