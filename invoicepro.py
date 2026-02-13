@@ -16,8 +16,8 @@ try:
     
     authenticator = stauth.Authenticate(
         config['credentials'],
-        config['cookie']['Pino'],
-        config['cookie']['Pino'], 
+        config['cookie']['name'],
+        config['cookie']['key'], 
         config['cookie']['expiry_days'],
         config['preauthorized']
     )
