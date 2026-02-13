@@ -8,11 +8,6 @@ from datetime import datetime
 import pandas as pd
 import io
 
-import streamlit as st
-import streamlit_authenticator as stauth
-import yaml
-from yaml.loader import SafeLoader
-
 # 🔐 LOGIN - INIZIO APP
 try:
     with open('config.yaml') as file:
