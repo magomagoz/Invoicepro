@@ -72,21 +72,32 @@ if 'dati_fatture' not in st.session_state:
 if 'pagina' not in st.session_state:
     st.session_state.pagina = "home"
 
-# Sidebar navigazione
-st.sidebar.title("CONFIGURAZIONE")
+# Sidebar COMPLETA con Anno + Anagrafiche
+st.sidebar.title("📊 **CONFIGURAZIONE**")
+
+# === SELETTORE ANNO (2020-2050) ===
+anni = list(range(2020, 2051))
+anno_selezionato = st.sidebar.selectbox(
+    "📅 **Anno Fatture**", 
+    anni, 
+    index=anni.index(2026),  # Default 2026
+    help="Filtra fatture per anno"
+)
+st.sidebar.markdown("---")
+
+# Navigazione esistente
 if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
     st.session_state.pagina = "home"
 
 if st.sidebar.button("📋 **ARCHIVIO FATTURE**", use_container_width=True):
     st.session_state.pagina = "storico"
-    
-# SOSTITUISCI la sezione HOME con questo:
-if st.session_state.pagina == "home":
-    # LOGO - sostituisci "logo.png" con il nome del tuo file
-    st.image("logo.png", use_column_width=False)
-    
-    st.title("💼 Fatturazione aziendale 💼")
-    st.markdown("---")
+
+# === NUOVO PULSANTE ANAGRAFICHE ===
+if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
+    st.session_state.pagina = "anagrafiche"
+
+# Info anno selezionato
+st.sidebar.info(f"**Filtro attivo: {anno_selezionato}**")
     
     col1, col2 = st.columns(2, gap="large")
     
@@ -118,7 +129,7 @@ elif st.session_state.pagina == "form":
     with col1:
         data = st.date_input("Data", value=datetime.now())
         numero = st.text_input("Numero Protocollo", value=f"2026/{len(st.session_state.dati_fatture[tipo])+1}")
-        nome = st.text_input("Cliente/Fornitore", value="Cliente" if tipo == "Attiva" else "Fornitore")
+        nome = st.text_input("Cliente/Fornitore", value="" if tipo == "Attiva" else "Fornitore")
         piva = st.text_input("P.IVA / CF", value="")
     
     with col2:
@@ -290,3 +301,27 @@ elif st.session_state.pagina == "storico":
             st.dataframe(df_passive, use_container_width=True, hide_index=True)
         else:
             st.info("👆 Nessuna fattura passiva. Crea la prima dalla Home!")
+
+# PAGINA ANAGRAFICHE
+elif st.session_state.pagina == "anagrafiche":
+    st.image("logo1.png", use_column_width=False)
+    st.header("👥 **Gestione Anagrafiche**")
+    
+    st.markdown("### 📋 **Clienti**")
+    if st.button("➕ **Nuovo Cliente**", use_container_width=True):
+        st.info("Funzionalità in sviluppo...")
+    
+    st.markdown("### 📋 **Fornitori**")  
+    if st.button("➕ **Nuovo Fornitore**", use_container_width=True):
+        st.info("Funzionalità in sviluppo...")
+    
+    st.markdown("### 📊 **Elenco Completo**")
+    col1, col2 = st.columns(2)
+    col1.button("👁️ **Visualizza Clienti**", use_container_width=True)
+    col2.button("👁️ **Visualizza Fornitori**", use_container_width=True)
+    
+    st.markdown("---")
+    if st.button("⬅️ **Torna Indietro**", use_container_width=True):
+        st.session_state.pagina = "home"
+        st.rerun()
+
