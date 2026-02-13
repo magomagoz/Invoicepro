@@ -8,6 +8,11 @@ from datetime import datetime
 import pandas as pd
 import io
 
+with open('config.yaml') as file:  # Percorso relativo corretto
+    config = yaml.safe_load(file)
+
+authenticator = stauth.Authenticate(config['credentials'], ...)
+
 # 🔐 LOGIN - INIZIO APP
 try:
     # Carica config
