@@ -116,7 +116,7 @@ elif st.session_state.pagina == "form":
 
     
     tipo = st.session_state.tipo
-    st.header(f"📄 {tipo} - Nuova Fattura")
+    st.header(f"📄 Nuova Fattura {tipo}")
     
     # Form in due colonne
     col1, col2 = st.columns(2)
@@ -132,7 +132,7 @@ elif st.session_state.pagina == "form":
         imponibile = st.number_input("Imponibile (€)", min_value=0.0, step=0.01, format="%.2f")
         iva_perc = st.number_input("Aliquota IVA (%)", min_value=0.0, value=22.0, step=0.1)
         pagamento = st.selectbox("Modalità Pagamento", 
-                               ["Bonifico 30gg", "Bonifico 60gg", "Anticipo", "Contanti"])
+                               ["Bonifico 30gg", "Bonifico 60gg", "RI.BA.", "Anticipo", "Saldo", "Contanti"])
     
     # Calcolo totali live
     iva, totale = calcola_totali(imponibile, iva_perc)
