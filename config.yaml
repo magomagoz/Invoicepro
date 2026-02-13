@@ -1,14 +1,12 @@
 credentials:
   usernames:
-    admin:
+    user1:
       email: logiservices2000@gmail.com
       name: Arminio
-      password: Arminio  # Genera dopo
+      password: "Arminio"  # hashed password
 
 cookie:
-  name: invoicepro
-  key: logiservices2000
-  expiry_days: 180
-
-preauthorized:
-  emails: []
+  name: invoice_pro
+  key: some_signature_key_32_chars_long_like_this_123456
+  expiry_days: 10000
+  # ← RIMUOVI sezione preauthorized completamente
