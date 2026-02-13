@@ -131,6 +131,27 @@ def calcola_totali(imponibile, iva_perc):
     except:
         return 0.0, 0.0
 
+def crea_pdf_fattura_semplice(dati_fattura, tipo="Attiva"):
+    """PDF funzionante su Streamlit Cloud"""
+    from fpdf import FPDF
+    
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font('Arial', 'B', 20)
+    pdf.cell(0, 10, f'FATTURA {tipo}', ln=True, align='C')
+    
+    pdf.set_font('Arial', '', 12)
+    pdf.cell(0, 8, f'Data: {dati_fattura["data"]}', ln=True)
+    pdf.cell(0, 8, f'Nº: {dati_fattura["numero"]}', ln=True)
+    pdf.cell(0, 8, f'{dati_fattura["cliente_fornitore"]}', ln=True)
+    pdf.cell(0, 8, f'P.IVA: {dati_fattura["piva"]}', ln=True)
+    
+    pdf.ln(10)
+    pdf.cell(60, 8, f'€ {dati_fattura["imponibile"]:>10.2f}', 1)
+    pdf.cell(45, 8, f'€ {dati_fattura["totale"]:>8.2f}', 1)
+    
+    pdf.output(dest='S').encode('latin-1')
+
 def create_excel_buffer(df, sheet_name):
     """Excel con fallback CSV - Robusta"""
     buffer = io.BytesIO()
