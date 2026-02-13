@@ -10,20 +10,20 @@ import io
 
 # 🔐 LOGIN - INIZIO APP
 try:
-    # Carica config (percorso relativo corretto per Cloud)
     with open('config.yaml') as file:
         config = yaml.load(file, Loader=SafeLoader)
     
+    # ❌ RIMUOVI preauthorized dal costruttore
     authenticator = stauth.Authenticate(
         config['credentials'],
         config['cookie']['name'],
         config['cookie']['key'], 
-        config['cookie']['expiry_days'],
-        config['preauthorized']
+        config['cookie']['expiry_days']
+        # ← preauthorized RIMUOVI QUI
     )
     
     name, authentication_status, username = authenticator.login(
-        "🔐 **CREDENZIALI**",
+        "🔐 **LOGIN INVOICE PRO**",
         "main"
     )
     
@@ -34,15 +34,11 @@ try:
         st.warning("⚠️ **Inserisci username/password**")
         st.stop()
     elif authentication_status:
-        # ✅ LOGIN OK - MOSTRA APP
         st.sidebar.success(f"👋 Benvenuto **{name}**")
         authenticator.logout("🚪 **Logout**", "sidebar")
 
-except FileNotFoundError:
-    st.error("❌ **File config.yaml mancante o percorso sbagliato** - Controlla root repo GitHub")
-    st.stop()
 except Exception as e:
-    st.error(f"❌ **Errore config: {str(e)}**")
+    st.error(f"❌ **Errore: {str(e)}**")
     st.stop()
 
 def create_excel_buffer(df, sheet_name):  # ← RIMUOVI self
