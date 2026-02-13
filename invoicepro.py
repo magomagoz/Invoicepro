@@ -263,6 +263,11 @@ if 'dati_fatture' not in st.session_state:
     st.session_state.dati_fatture = carica_dati()
 if 'pagina' not in st.session_state:
     st.session_state.pagina = "home"
+# Inizializza stato FORM
+if 'form_dati_salvati' not in st.session_state:
+    st.session_state.form_dati_salvati = False
+if 'form_dati_temp' not in st.session_state:
+    st.session_state.form_dati_temp = {}
 
 # ✅ SIDEBAR (CORRETTA - all'inizio dopo init)
 st.sidebar.title("📊 **CONFIGURAZIONE**")
@@ -303,19 +308,18 @@ if st.session_state.pagina == "home":
             st.session_state.tipo = "Passiva"
             st.rerun()
     
-# FORM FATTURAZIONE - VERSIONE CORRETTA
+# FORM FATTURAZIONE CON CONTROLLO SALVATAGGIO
 elif st.session_state.pagina == "form":
-    st.image("banner.png", use_column_width=False)
-    
+    st.image("logo1.png", use_column_width=False)
     tipo = st.session_state.tipo
     st.header(f"📄 {tipo} - Nuova Fattura")
     
-    # Form in due colonne
+    # === SALVA DATI TEMPORANEI in tempo reale ===
     col1, col2 = st.columns(2)
     with col1:
         data = st.date_input("Data", value=datetime.now())
         numero = st.text_input("Numero Protocollo", value=f"2026/{len(st.session_state.dati_fatture[tipo])+1}")
-        nome = st.text_input("Cliente/Fornitore", value="" if tipo == "Attiva" else "Fornitore")
+        nome = st.text_input("Cliente/Fornitore", value="Cliente" if tipo == "Attiva" else "Fornitore")
         piva = st.text_input("P.IVA / CF", value="")
     
     with col2:
@@ -331,77 +335,87 @@ elif st.session_state.pagina == "form":
     
     note = st.text_area("Note", height=100)
     
-    # === POPUP SALVATAGGIO (AL LIVELLO GIUSTO) ===
-    @st.dialog(f"💾 Conferma salvataggio {tipo}", width="500")
+    # === SALVA DATI TEMPORANEI ===
+    st.session_state.form_dati_temp = {
+        "data": data.strftime("%d/%m/%Y"),
+        "numero": numero, 
+        "cliente_fornitore": nome,
+        "piva": piva,
+        "imponibile": float(imponibile),
+        "iva_perc": float(iva_perc),
+        "iva": float(iva),
+        "totale": float(totale),
+        "pagamento": pagamento,
+        "note": note
+    }
+    
+    # === POPUP SALVATAGGIO ===
+    @st.dialog("💾 Conferma salvataggio", width="500")
     def dialog_salvataggio():
-        st.markdown(f"**Confermi il salvataggio della fattura?**")
-        st.markdown(f"### 📄 Dettagli:")
-        st.markdown(f"- **Numero:** {numero}")
-        st.markdown(f"- **Cliente/Fornitore:** {nome}")
-        st.markdown(f"- **Totale:** € {totale:.2f}")
+        st.markdown("**⚠️ SALVA PRIMA di uscire dal form!**")
+        st.markdown(f"### 📄 Dettagli fattura:")
+        st.markdown(f"- **Numero:** {st.session_state.form_dati_temp['numero']}")
+        st.markdown(f"- **Cliente:** {st.session_state.form_dati_temp['cliente_fornitore']}")
+        st.markdown(f"- **Totale:** € {st.session_state.form_dati_temp['totale']:.2f}")
         
         col_c, col_s = st.columns([3,1])
         with col_c:
             if st.button("❌ **Annulla**", use_container_width=True):
                 st.dialog_close()
         with col_s:
-            if st.button("✅ **Salva**", type="primary", use_container_width=True):
-                fattura = {
-                    "data": data.strftime("%d/%m/%Y"),
-                    "numero": numero,
-                    "cliente_fornitore": nome,
-                    "piva": piva,
-                    "imponibile": float(imponibile),
-                    "iva_perc": float(iva_perc),
-                    "iva": float(iva),
-                    "totale": float(totale),
-                    "pagamento": pagamento,
-                    "note": note,
-                    "timestamp": datetime.now().isoformat()
-                }
+            if st.button("✅ **SALVA DEFINITIVO**", type="primary", use_container_width=True):
+                # SALVA in fatture.json
+                fattura = st.session_state.form_dati_temp.copy()
+                fattura["timestamp"] = datetime.now().isoformat()
                 st.session_state.dati_fatture[tipo].append(fattura)
                 salva_dati(st.session_state.dati_fatture)
+                
+                # ✅ IMPOSTA SALVATO
+                st.session_state.form_dati_salvati = True
                 st.session_state.pagina = "storico"
-                st.success("✅ Fattura salvata!")
+                st.success("✅ Fattura salvata permanentemente!")
                 st.balloons()
                 st.rerun()
     
-    # Pulsanti azione
-    col_btn1, col_btn2, col_btn3 = st.columns(3)
-    with col_btn1:
-        if st.button("💾 **Salva Fattura**", type="primary", use_container_width=True):
-            dialog_salvataggio()  # ← Chiamata corretta
+    # === PULSANTI CON CONTROLLO SALVATAGGIO ===
+    col1, col2, col3, col4 = st.columns(4)
     
-    with col_btn2:
-        if st.button("⬅️ Indietro", use_container_width=True):
-            st.session_state.pagina = "home"
-            st.rerun()
+    with col1:
+        if st.button("💾 **SALVA**", type="primary", use_container_width=True):
+            dialog_salvataggio()
     
-    with col_btn3:
-        if st.button("🖨️ Stampa PDF", use_container_width=True):
-            st.info("📄 PDF pronto!")
-
-    with col_btn4:  # Nuova colonna
-        if st.button("📄 **Esporta XML**", use_container_width=True):
-            xml_single = fattura_to_xml({
-                "data": data.strftime("%d/%m/%Y"),
-                "numero": numero,
-                "cliente_fornitore": nome,
-                "piva": piva,
-                "imponibile": float(imponibile),
-                "iva": float(iva),
-                "iva_perc": float(iva_perc),
-                "totale": float(totale),
-                "pagamento": pagamento,
-                "note": note
-            }, tipo)
-            st.download_button(
-                label="💾 Scarica XML",
-                data=xml_single,
-                file_name=f"{numero}_{tipo}.xml",
-                mime="application/xml"
-            )
-
+    with col2:
+        if st.button("⬅️ **Indietro**", use_container_width=True):
+            if st.session_state.form_dati_salvati:
+                st.session_state.pagina = "home"
+                st.rerun()
+            else:
+                st.error("⚠️ **SALVA PRIMA** i dati inseriti!")
+    
+    with col3:
+        if st.button("🖨️ **PDF**", use_container_width=True):
+            if st.session_state.form_dati_salvati:
+                st.info("📄 PDF generato!")
+            else:
+                st.error("⚠️ **SALVA PRIMA** la fattura!")
+    
+    with col4:
+        if st.button("📄 **XML**", use_container_width=True):
+            if st.session_state.form_dati_salvati:
+                # Genera XML singolo
+                xml_data = fattura_to_xml(st.session_state.form_dati_temp, tipo)
+                st.download_button(
+                    label="💾 Scarica XML",
+                    data=xml_data,
+                    file_name=f"{numero}_{tipo}.xml",
+                    mime="application/xml"
+                )
+            else:
+                st.error("⚠️ **SALVA PRIMA** la fattura!")
+    
+    # === INDICATORE STATO ===
+    stato = "🟢 SALVATO" if st.session_state.form_dati_salvati else "🟡 NON SALVATO"
+    st.metric("📝 Stato form", stato)
 
 # STORICO FATTURE (SEZIONE AGGIORNATA)
 elif st.session_state.pagina == "storico":
