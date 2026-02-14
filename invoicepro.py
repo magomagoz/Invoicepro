@@ -232,8 +232,8 @@ elif st.session_state.pagina == "form":
             else:
                 st.warning("👤 Cliente non trovato")
         
-        if cliente_selezionato:
-            record = anagrafica[anagrafica['nome']
+            if cliente_selezionato:
+                record = anagrafica[anagrafica['nome']
 
         piva = st.text_input("**🆔 P.IVA / CF**")
     
