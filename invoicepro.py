@@ -249,7 +249,7 @@ st.sidebar.info(f"**Anno: {st.session_state.anno_selezionato}**")
 # =============================================================================
 
 if st.session_state.pagina == "home":
-    t.image("banner1.png", use_column_width=False)
+    st.image("banner1.png", use_column_width=False)
     st.title("💼 **Fatturazione Aziendale** 💼")
     st.markdown("---")
     
