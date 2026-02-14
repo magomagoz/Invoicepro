@@ -209,8 +209,7 @@ elif st.session_state.pagina == "form":
     col1, col2 = st.columns(2)
     with col1:
         data = st.date_input("**📅 Data**", value=date.today())
-        numero = st.text_input("**🔢 Numero Protocollo**", 
-                              value=f"{st.session_state.anno_selezionato}/{len(st.session_state.dati_fattures[tipo])+1}")
+        numero = st.text_input("**🔢 Numero Protocollo**", value=f"{st.session_state.anno_selezionato}/{len(st.session_state.dati_fattures[tipo])+1}")
         
         # SISTEMA RICERCA CLIENTI
         anagrafica = st.session_state.anagrafica.copy()
