@@ -339,7 +339,16 @@ elif st.session_state.pagina == "storico":
                 mime='text/csv',
                 use_container_width=True
             )
-            
+
+            if st.button(
+                label="🗑️ **Cancella Storico**",
+                use_container_width=True,
+                type="secondary"
+            ):
+                st.cache_data.clear()  # Cancella cache dati
+                st.session_state.clear()  # Cancella session state (conversazioni)
+                st.rerun()  # Ricarica la pagina pulita
+
             st.dataframe(df_attive, use_container_width=True, hide_index=True)
         else:
             st.info("👆 **Nessuna fattura attiva**. Crea la prima dalla Home!")
