@@ -71,6 +71,10 @@ def valida_piva(piva):
     piva = piva.replace("IT", "").replace(" ", "").strip().upper()
     return len(piva) == 11 and piva.isdigit()
 
+def valida_cf(cf):
+    cf = cf.replace(" ", "").strip().upper()
+    return len(piva) == 16
+
 def valida_fattura(dati):
     errori = []
     if not dati.get("cliente_fornitore", "").strip():
@@ -210,7 +214,7 @@ elif st.session_state.pagina == "form":
     with col1:
         data = st.date_input("**📅 Data**", value=datetime.now())
         numero = st.text_input("**🔢 Numero Protocollo**", 
-                              value=f"{anno}/{len(st.session_state.dati_fatture[tipo])+1}")
+                              value=f"{anno_selezionato}/{len(st.session_state.dati_fatture[tipo])+1}")
         nome = st.text_input("**👤 Cliente/Fornitore**", value="Cliente" if tipo == "Attiva" else "Fornitore")
         piva = st.text_input("**🆔 P.IVA / CF**", value="")
     
@@ -303,7 +307,7 @@ elif st.session_state.pagina == "storico":
             buffer_data, mime_type, file_ext = create_excel_buffer(df, "Fatture_Attive")
             col1, col2 = st.columns(2)
             col1.download_button("⬇️ Excel", data=buffer_data, file_name=f"Attive_{datetime.now().strftime('%Y%m%d')}{file_ext}", mime=mime_type)
-            csv_data = df.to_csv(index=False, sep=';', encoding='utf-8').encode('utf-8')
+            xls_data = df.to_xls(index=False, sep=';', encoding='utf-8').encode('utf-8')
             col2.download_button("📄 CSV", data=csv_data, file_name=f"Attive_{datetime.now().strftime('%Y%m%d')}.csv", mime='text/csv')
             st.dataframe(df, use_container_width=True, hide_index=True)
         else:
@@ -316,7 +320,7 @@ elif st.session_state.pagina == "storico":
             buffer_data, mime_type, file_ext = create_excel_buffer(df, "Fatture_Passive")
             col1, col2 = st.columns(2)
             col1.download_button("⬇️ Excel", data=buffer_data, file_name=f"Passive_{datetime.now().strftime('%Y%m%d')}{file_ext}", mime=mime_type)
-            csv_data = df.to_csv(index=False, sep=';', encoding='utf-8').encode('utf-8')
+            xls_data = df.to_xls(index=False, sep=';', encoding='utf-8').encode('utf-8')
             col2.download_button("📄 CSV", data=csv_data, file_name=f"Passive_{datetime.now().strftime('%Y%m%d')}.csv", mime='text/csv')
             st.dataframe(df, use_container_width=True, hide_index=True)
         else:
