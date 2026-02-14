@@ -231,7 +231,7 @@ elif st.session_state.pagina == "form":
         anno_selezionato = st.session_state.anno_selezionato
         numero = st.text_input("**🔢 Numero Fattura**", 
                               value=f"{anno_selezionato}/{len(st.session_state.dati_fatture[tipo])+1}")
-        nome = st.text_input("**👤 Cliente/Fornitore**", value="" if tipo == "Attiva" else "Fornitore")
+        nome = st.text_input("**👤 Cliente/Fornitore**", value="" if tipo == "Attiva" else "")
         piva = st.text_input("**🆔 P.IVA / CF**", value="")
     
     with col2:
