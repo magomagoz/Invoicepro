@@ -1,12 +1,23 @@
 import streamlit as st
 import json
 import os
-from datetime import datetime
+from datetime import datetime, date
 import pandas as pd
 import io
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import base64
+
+# Carica anagrafica (CSV o session_state)
+if 'anagrafica' not in st.session_state:
+    # Simula anagrafica, sostituisci con pd.read_csv("clienti.csv")
+    st.session_state.anagrafica = pd.DataFrame({
+        'nome': ['Mario Rossi', 'Luca Bianchi', 'Anna Verdi'],
+        'piva': ['IT12345678901', 'IT98765432109', 'IT55566677788'],
+        'indirizzo': ['Via Roma 1', 'Via Milano 2', 'Via Napoli 3']
+    })
+
+anagrafica = st.session_state.anagrafica.copy()
 
 # =============================================================================
 # FUNZIONI UTILITY
@@ -280,7 +291,58 @@ elif st.session_state.pagina == "form":
         data = st.date_input("**📅 Data**", value=datetime.now(), format="DD/MM/YYYY")
         numero = st.text_input("**🔢 Numero Protocollo**", 
                               value=f"{st.session_state.anno_selezionato}/{len(st.session_state.dati_fatture[tipo])+1}")
-        nome = st.text_input("**👤 Cliente/Fornitore**")
+        # === SOSTITUISCI IL TUO CAMPO CLIENTE CON QUESTO ===
+        anagrafica = st.session_state.anagrafica.copy()
+        
+        # Filtro ricerca
+        query = st.text_input("🔍 Cerca Cliente/Fornitore", placeholder="Digita nome...")
+        
+        cliente_selezionato = ""
+        piva = ""
+        
+        if query:
+            clienti_filtrati = anagrafica[
+                anagrafica['nome'].str.contains(query, case=False, na=False)
+            ]['nome'].tolist()
+            
+            if clienti_filtrati:
+                cliente_selezionato = st.selectbox(
+                    "Seleziona:", options=[""] + clienti_filtrati, index=0
+                )
+            else:
+                cliente_selezionato = ""
+                st.warning("👤 Cliente non trovato")
+        else:
+            cliente_selezionato = ""
+        
+        # Auto-compilazione P.IVA
+        if cliente_selezionato:
+            record = anagrafica[anagrafica['nome'] == cliente_selezionato].iloc[0]
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                st.text_input("Cliente", value=cliente_selezionato, disabled=True)
+            with col2:
+                piva = st.text_input("P.IVA", value=record['piva'] if pd.notna(record['piva']) else "")
+                
+        elif query:
+            col1, col2 = st.columns(2)
+            with col1:
+                nuovo_cliente = st.text_input("Nuovo Cliente")
+            with col2:
+                piva = st.text_input("P.IVA")
+            
+            if st.button("➕ Aggiungi") and nuovo_cliente:
+                nuovo_record = pd.DataFrame({
+                    'nome': [nuovo_cliente], 'piva': [piva], 'indirizzo': [""]
+                })
+                st.session_state.anagrafica = pd.concat([st.session_state.anagrafica, nuovo_record])
+                st.success("✅ Aggiunto!")
+                st.rerun()
+        
+        # Ora usa 'cliente_selezionato' e 'piva' nelle tue righe successive
+        cliente = cliente_selezionato
+        # === FINE SOSTITUZIONE ===
+
         piva = st.text_input("**🆔 P.IVA / CF**")
     
     with col2:
