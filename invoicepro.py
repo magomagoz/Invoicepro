@@ -341,7 +341,7 @@ elif st.session_state.pagina == "storico":
             )
 
             if st.button(
-                label="Cancella Storico Attive", 
+                label="Cancella Storico Attive e Passive", 
                 key="cancella_attive",
                 use_container_width=True, 
                 type="secondary"
@@ -351,7 +351,7 @@ elif st.session_state.pagina == "storico":
             if st.session_state.get("confirm_delete_attive", False):
                 col1, col2 = st.columns([3,1])
                 with col1:
-                    st.error("⚠️ CONFERMI cancellazione TUTTE le fatture attive?")
+                    st.error("⚠️ CONFERMI cancellazione TUTTE le fatture attive e passive?")
                 with col2:
                     if st.button("SI, CANCELLA", key="si_attive", type="primary"):
                         st.session_state.dati_fatture["Attiva"] = []
@@ -385,7 +385,7 @@ elif st.session_state.pagina == "storico":
             )
 
             if st.button(
-                label="Cancella Storico Attive", 
+                label="Cancella Storico Attive e Passive", 
                 key="cancella_attive",
                 use_container_width=True, 
                 type="secondary"
@@ -395,7 +395,7 @@ elif st.session_state.pagina == "storico":
             if st.session_state.get("confirm_delete_attive", False):
                 col1, col2 = st.columns([3,1])
                 with col1:
-                    st.error("⚠️ CONFERMI cancellazione TUTTE le fatture attive?")
+                    st.error("⚠️ CONFERMI cancellazione TUTTE le fatture attive e passive?")
                 with col2:
                     if st.button("SI, CANCELLA", key="si_attive", type="primary"):
                         st.session_state.dati_fatture["Attiva"] = []
