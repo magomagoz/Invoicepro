@@ -248,13 +248,10 @@ st.sidebar.info(f"**Anno: {st.session_state.anno_selezionato}**")
 # PAGINE
 # =============================================================================
 
-st.image("banner1.png", use_column_width=False)
-st.title("💼 **Fatturazione Aziendale** 💼")
-
-
-#if st.session_state.pagina == "home":
-    #st.title("💼 **Fatturazione Aziendale** 💼")
-    #st.markdown("---")
+if st.session_state.pagina == "home":
+    t.image("banner1.png", use_column_width=False)
+    st.title("💼 **Fatturazione Aziendale** 💼")
+    st.markdown("---")
     
     col1, col2 = st.columns(2, gap="large")
     with col1:
