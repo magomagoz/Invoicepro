@@ -3,59 +3,12 @@ import json
 import os
 import pandas as pd
 import io
-import yaml
-from yaml.loader import SafeLoader
 from datetime import datetime, date
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
-import openpyxl
-from openpyxl.styles import Font
 
 # =============================================================================
-# 🔐 AUTENTICAZIONE - PRIMA DI TUTTO
-# =============================================================================
-try:
-    with open('config.yaml') as file:
-        config = yaml.load(file, Loader=SafeLoader)
-
-    authenticator = stauth.Authenticate(
-        config['credentials'],
-        config['cookie']['name'],
-        config['cookie']['key'],
-        config['cookie']['expiry_days'],
-        config['preauthorized']
-    )
-
-    name, authentication_status, username = authenticator.login(
-        "🔐 **INVOICE PRO - Login**",
-        "main"
-    )
-
-    if authentication_status == False:
-        st.error("❌ **Credenziali errate**")
-        st.stop()
-    elif authentication_status == None:
-        st.warning("⚠️ **Inserisci username e password**")
-        st.stop()
-    elif authentication_status:
-        st.sidebar.success(f"👋 Benvenuto **{name}**")
-        authenticator.logout("🚪 **Logout**", "sidebar")
-
-except:
-    st.error("❌ **File config.yaml mancante o errore configurazione**")
-    st.stop()
-
-# =============================================================================
-# CONFIG PAGE
-# =============================================================================
-st.set_page_config(
-    page_title="Invoice Pro",
-    page_icon="💼",
-    layout="wide"
-)
-
-# =============================================================================
-# INIZIALIZZAZIONE SESSION STATE
+# INIZIALIZZAZIONE SESSION STATE (SENZA LIBRERIE ESTERNE)
 # =============================================================================
 def init_session_state():
     defaults = {
@@ -74,7 +27,7 @@ def init_session_state():
 
 init_session_state()
 
-# Carica dati persistenti
+# Carica/Salva dati
 def carica_dati():
     if os.path.exists("fatture.json"):
         try:
@@ -97,22 +50,24 @@ def salva_dati(dati):
     try:
         with open("fatture.json", "w", encoding='utf-8') as f:
             json.dump(dati, f, indent=4, ensure_ascii=False)
-    except Exception as e:
-        st.error(f"Errore salvataggio: {e}")
+        return True
+    except:
+        return False
 
 def salva_anagrafiche(dati):
     try:
         with open("anagrafiche.json", "w", encoding='utf-8') as f:
             json.dump(dati, f, indent=4, ensure_ascii=False)
-    except Exception as e:
-        st.error(f"Errore salvataggio: {e}")
+        return True
+    except:
+        return False
 
-# Aggiorna dati da file
+# Aggiorna dati persistenti
 st.session_state.dati_fatture = carica_dati()
 st.session_state.anagrafiche = carica_anagrafiche()
 
 # =============================================================================
-# FUNZIONI UTILITY
+# FUNZIONI UTILITY (SOLO LIBRERIE BASE)
 # =============================================================================
 def calcola_totali(imponibile, iva_perc):
     try:
