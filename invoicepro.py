@@ -208,33 +208,11 @@ elif st.session_state.pagina == "form":
     
     col1, col2 = st.columns(2)
     with col1:
-        data = st.date_input("**📅 Data**", value=date.today())
-        numero = st.text_input("**🔢 Numero Protocollo**", value=f"{st.session_state.anno_selezionato}/{len(st.session_state.dati_fattures[tipo])+1}")
-        
-        # SISTEMA RICERCA CLIENTI
-        anagrafica = st.session_state.anagrafica.copy()
-        query = st.text_input("🔍 **Cerca Cliente/Fornitore**", placeholder="Digita nome...")
-        
-        cliente_selezionato = ""
-        piva_input = ""
-        nuovo_cliente = ""
-        
-        if query:
-            clienti_filtrati = anagrafica[
-                anagrafica['nome'].str.contains(query, case=False, na=False)
-            ]['nome'].tolist()
-            
-            if clienti_filtrati:
-                cliente_selezionato = st.selectbox(
-                    "Seleziona:", options=[""] + clienti_filtrati, index=0
-                )
-            else:
-                st.warning("👤 Cliente non trovato")
-        
-            if cliente_selezionato:
-                record = anagrafica[anagrafica['nome']]
-
-        piva = st.text_input("**🆔 P.IVA / CF**")
+        data = st.date_input("**📅 Data**", value=datetime.now())
+        numero = st.text_input("**🔢 Numero Protocollo**", 
+                              value=f"{anno_selezionato}/{len(st.session_state.dati_fatture[tipo])+1}")
+        nome = st.text_input("**👤 Cliente/Fornitore**", value="Cliente" if tipo == "Attiva" else "Fornitore")
+        piva = st.text_input("**🆔 P.IVA / CF**", value="")
     
     with col2:
         imponibile = st.number_input("**💰 Imponibile (€)**", min_value=0.0, step=0.01, format="%.2f")
