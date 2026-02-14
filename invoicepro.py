@@ -177,40 +177,22 @@ def fattura_to_xml(fattura, tipo):
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
 
-def create_excel_buffer(df, sheet_name):
-    if len(df) == 0:
-        return b"", "text/plain", ".txt"
-    
-    if 'data' in df.columns:
-        df = df.copy()
-        df['data'] = df['data'].apply(formatta_data_df)
-    
+import io
+import pandas as pd
+
+def create_excel_buffer(df, nome_foglio):
     buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-        df.to_excel(writer, sheet_name=sheet_name, index=False)
-        
+    
+    # Usa xlsxwriter invece di openpyxl per i buffer (più stabile)
+    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name=nome_foglio, index=False)
         workbook = writer.book
-        worksheet = writer.sheets[sheet_name]
-        
-        # Auto-adjust colonne
-        for column in worksheet.columns:
-            max_length = 0
-            column_letter = column[0].column_letter
-            for cell in column:
-                try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(str(cell.value))
-                except:
-                    pass
-            adjusted_width = min(max_length + 2, 50)
-            worksheet.column_dimensions[column_letter].width = adjusted_width
-        
-        # Intestazioni bold
-        for cell in worksheet[1]:
-            cell.font = Font(bold=True)
+        worksheet = writer.sheets[nome_foglio]
+        # Formattazione opzionale
+        worksheet.autofit()
     
     buffer.seek(0)
-    return buffer.getvalue(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx"
+    return buffer.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'xlsx'
 
 # =============================================================================
 # SIDEBAR
