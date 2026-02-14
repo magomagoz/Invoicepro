@@ -340,14 +340,31 @@ elif st.session_state.pagina == "storico":
                 use_container_width=True
             )
 
-            if st.button(
-                label="🗑️ **Cancella Storico**",
-                use_container_width=True,
-                type="secondary"
-            ):
-                st.cache_data.clear()  # Cancella cache dati
-                st.session_state.clear()  # Cancella session state (conversazioni)
-                st.rerun()  # Ricarica la pagina pulita
+            # SOSTITUISCI i bottoni Cancella Storico nelle tab con:
+            if st.button("🗑️ **Cancella Storico**", use_container_width=True, type="secondary"):
+                # ALERT CONFERMA (Streamlit style)
+                st.session_state.confirm_delete = True
+                
+            if st.session_state.get("confirm_delete", False):
+                col1, col2 = st.columns([3,1])
+                with col1:
+                    st.error("⚠️ **CONFERMI cancellazione TUTTE le fatture?**")
+                with col2:
+                    if st.button("✅ **SÌ, CANCELLA**", type="primary"):
+                        # CANCELLA SOLO I DATI FATTORE (non tutto lo stato)
+                        st.session_state.dati_fatture = {"Attiva": [], "Passiva": []}
+                        # Cancella anche i file JSON
+                        if os.path.exists("fatture.json"):
+                            os.remove("fatture.json")
+                        # Reset pagina per refresh
+                        st.session_state.pagina = "storico"
+                        st.session_state.confirm_delete = False
+                        st.success("🗑️ **Storico cancellato completamente!**")
+                        st.balloons()
+                        st.rerun()
+                    if st.button("❌ **ANNULLA**"):
+                        st.session_state.confirm_delete = False
+                        st.rerun()
 
             st.dataframe(df_attive, use_container_width=True, hide_index=True)
         else:
@@ -368,14 +385,31 @@ elif st.session_state.pagina == "storico":
                 use_container_width=True
             )
 
-            if st.button(
-                label="🗑️ **Cancella Storico**",
-                use_container_width=True,
-                type="secondary"
-            ):
-                st.cache_data.clear()  # Cancella cache dati
-                st.session_state.clear()  # Cancella session state (conversazioni)
-                st.rerun()  # Ricarica la pagina pulita
+            # SOSTITUISCI i bottoni Cancella Storico nelle tab con:
+            if st.button("🗑️ **Cancella Storico**", use_container_width=True, type="secondary"):
+                # ALERT CONFERMA (Streamlit style)
+                st.session_state.confirm_delete = True
+                
+            if st.session_state.get("confirm_delete", False):
+                col1, col2 = st.columns([3,1])
+                with col1:
+                    st.error("⚠️ **CONFERMI cancellazione TUTTE le fatture?**")
+                with col2:
+                    if st.button("✅ **SÌ, CANCELLA**", type="primary"):
+                        # CANCELLA SOLO I DATI FATTORE (non tutto lo stato)
+                        st.session_state.dati_fatture = {"Attiva": [], "Passiva": []}
+                        # Cancella anche i file JSON
+                        if os.path.exists("fatture.json"):
+                            os.remove("fatture.json")
+                        # Reset pagina per refresh
+                        st.session_state.pagina = "storico"
+                        st.session_state.confirm_delete = False
+                        st.success("🗑️ **Storico cancellato completamente!**")
+                        st.balloons()
+                        st.rerun()
+                    if st.button("❌ **ANNULLA**"):
+                        st.session_state.confirm_delete = False
+                        st.rerun()
 
             st.dataframe(df_passive, use_container_width=True, hide_index=True)
         else:
