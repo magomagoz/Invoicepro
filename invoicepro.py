@@ -9,9 +9,8 @@ from xml.dom import minidom
 import base64
 
 # =============================================================================
-# CONFIGURAZIONE APP
+# 1. CONFIG PAGE - PRIMA COSA
 # =============================================================================
-
 st.set_page_config(
     page_title="Invoice Pro",
     page_icon="💼",
@@ -19,27 +18,29 @@ st.set_page_config(
 )
 
 # =============================================================================
-# FUNZIONI UTILITY
+# 2. INIZIALIZZAZIONE ANAGRAFICA
 # =============================================================================
-
-def formatta_data_df(data_str):
-    """Converte data per dataframe in dd/mm/yyyy"""
+if 'anagrafica' not in st.session_state:
     try:
-        if pd.isna(data_str):
-            return ""
-        if isinstance(data_str, str) and '/' in data_str:
-            return data_str
-        dt = pd.to_datetime(data_str)
-        return dt.strftime("%d/%m/%Y")
+        st.session_state.anagrafica = pd.read_csv("anagrafica.csv")
+        if 'ragione_sociale' in st.session_state.anagrafica.columns:
+            st.session_state.anagrafica = st.session_state.anagrafica.rename(columns={
+                'ragione_sociale': 'nome'
+            })
     except:
-        return str(data_str)
+        st.session_state.anagrafica = pd.DataFrame({
+            'nome': ['Mario Rossi', 'Luca Bianchi', 'Anna Verdi'],
+            'piva': ['IT12345678901', 'IT98765432109', 'IT55566677788'],
+            'indirizzo': ['Via Roma 1', 'Via Milano 2', 'Via Napoli 3']
+        })
 
+# =============================================================================
+# 3. INIZIALIZZAZIONE SESSION STATE
+# =============================================================================
 def init_session_state():
-    """Inizializza tutto lo stato dell'applicazione"""
     defaults = {
-        'dati_fatture': carica_dati_sicuro(),
+        'dati_fatture': {"Attiva": [], "Passiva": []},
         'pagina': 'home',
-        'anagrafiche': carica_anagrafiche(),
         'form_dati_salvati': False,
         'form_dati_temp': {},
         'tipo': None,
@@ -50,13 +51,27 @@ def init_session_state():
         if key not in st.session_state:
             st.session_state[key] = value
 
+init_session_state()
+
+# =============================================================================
+# FUNZIONI UTILITY
+# =============================================================================
+def formatta_data_df(data_str):
+    try:
+        if pd.isna(data_str):
+            return ""
+        if isinstance(data_str, str) and '/' in data_str:
+            return data_str
+        dt = pd.to_datetime(data_str)
+        return dt.strftime("%d/%m/%Y")
+    except:
+        return str(data_str)
+
 def valida_piva(piva):
-    """Validazione P.IVA italiana semplificata"""
     piva = piva.replace("IT", "").replace(" ", "").strip().upper()
     return len(piva) == 11 and piva.isdigit()
 
 def valida_fattura(dati):
-    """Controlla i dati della fattura prima del salvataggio"""
     errori = []
     if not dati.get("cliente_fornitore", "").strip():
         errori.append("❌ Cliente/Fornitore obbligatorio")
@@ -70,30 +85,7 @@ def valida_fattura(dati):
         errori.append("❌ Numero protocollo obbligatorio")
     return errori
 
-def carica_dati_sicuro():
-    """Caricamento sicuro con validazione"""
-    try:
-        if os.path.exists("fatture.json"):
-            with open("fatture.json", "r", encoding='utf-8') as f:
-                dati = json.load(f)
-                if isinstance(dati, dict) and "Attiva" in dati and "Passiva" in dati:
-                    return dati
-    except Exception:
-        pass
-    return {"Attiva": [], "Passiva": []}
-
-def carica_anagrafiche():
-    """Carica anagrafiche con fallback"""
-    try:
-        if os.path.exists("anagrafiche.json"):
-            with open("anagrafiche.json", "r", encoding='utf-8') as f:
-                return json.load(f)
-    except:
-        pass
-    return {"clienti": [], "fornitori": []}
-
 def salva_dati(dati):
-    """Salva fatture con gestione errori"""
     try:
         with open("fatture.json", "w", encoding='utf-8') as f:
             json.dump(dati, f, indent=4, ensure_ascii=False)
@@ -101,17 +93,14 @@ def salva_dati(dati):
     except Exception as e:
         st.error(f"❌ Errore salvataggio: {e}")
 
-def salva_anagrafiche(dati):
-    """Salva anagrafiche"""
+def salva_anagrafica_csv():
     try:
-        with open("anagrafiche.json", "w", encoding='utf-8') as f:
-            json.dump(dati, f, indent=4, ensure_ascii=False)
-        st.success("✅ Anagrafiche salvate!")
-    except:
-        st.error("❌ Errore salvataggio anagrafiche")
+        st.session_state.anagrafica.to_csv("anagrafica.csv", index=False)
+        st.success("✅ Anagrafica salvata!")
+    except Exception as e:
+        st.error(f"❌ Errore: {e}")
 
 def calcola_totali(imponibile, iva_perc):
-    """Calcola IVA e totale"""
     try:
         imp = float(imponibile or 0)
         iva_p = float(iva_perc or 0) / 100
@@ -122,92 +111,36 @@ def calcola_totali(imponibile, iva_perc):
         return 0.0, 0.0
 
 def crea_pdf_fattura_semplice(dati_fattura, tipo="Attiva"):
-    """Simulazione PDF - testo formattato"""
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 2px solid #1e3a8a;">
-        <div style="display: flex; align-items: center; margin-bottom: 20px;">
-            <div style="width: 80px; height: 30px; background: #1e3a8a; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 20px;">
-                logo_pdf.png
-            </div>
-            <h1 style="color: #1e3a8a; margin: 0; font-size: 28px;">FATTURA {tipo}</h1>
-        </div>
-        
-        <hr style="border: 2px solid #1e3a8a; margin: 20px 0;">
-        
-        <div style="text-align: center; margin: 20px 0;">
-            <h3>Data: {dati_fattura["data"]} | Nº: {dati_fattura["numero"]}</h3>
-        </div>
-        
-        <div style="margin: 20px 0;">
-            <h3 style="color: #1e3a8a;">{'CLIENTE' if tipo == 'Attiva' else 'FORNITORE'}</h3>
-            <p style="font-size: 16px; margin: 5px 0;">{dati_fattura["cliente_fornitore"]}</p>
-            <p style="font-size: 16px; margin: 5px 0;">P.IVA: {dati_fattura["piva"]}</p>
-        </div>
-        
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <thead>
-                <tr style="background: #e5e7eb;">
-                    <th style="border: 1px solid #d1d5db; padding: 12px; text-align: center;">IMPONIBILE</th>
-                    <th style="border: 1px solid #d1d5db; padding: 12px; text-align: center;">IVA</th>
-                    <th style="border: 1px solid #d1d5db; padding: 12px; text-align: center;">IVA €</th>
-                    <th style="border: 1px solid #d1d5db; padding: 12px; text-align: center;">TOTALE €</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td style="border: 1px solid #d1d5db; padding: 12px; text-align: right;">€ {dati_fattura["imponibile"]:>8.2f}</td>
-                    <td style="border: 1px solid #d1d5db; padding: 12px; text-align: center;">{dati_fattura["iva_perc"]:.1f}%</td>
-                    <td style="border: 1px solid #d1d5db; padding: 12px; text-align: right;">€ {dati_fattura["iva"]:>8.2f}</td>
-                    <td style="border: 1px solid #d1d5db; padding: 12px; text-align: right; font-weight: bold; background: #fef3c7;">€ {dati_fattura["totale"]:>8.2f}</td>
-                </tr>
-            </tbody>
-        </table>
-        
-        <div style="margin: 20px 0;">
-            <strong>PAGAMENTO:</strong> {dati_fattura["pagamento"]}
-        </div>
-        
-        {f'<div style="margin: 20px 0;"><strong>NOTE:</strong> {dati_fattura["note"]}</div>' if dati_fattura.get("note") else ""}
-        
-        <hr style="border: 1px solid #d1d5db; margin: 30px 0 20px 0;">
-        <p style="text-align: center; color: #6b7280; font-size: 12px;">
-            Generato con InvoicePro il {datetime.now().strftime("%d/%m/%Y %H:%M")}
-        </p>
+        <h1 style="color: #1e3a8a;">FATTURA {tipo}</h1>
+        <h3>Data: {dati_fattura["data"]} | Nº: {dati_fattura["numero"]}</h3>
+        <h3>{'CLIENTE' if tipo == 'Attiva' else 'FORNITORE'}</h3>
+        <p>{dati_fattura["cliente_fornitore"]}</p>
+        <p>P.IVA: {dati_fattura["piva"]}</p>
+        <p>Imponibile: € {dati_fattura["imponibile"]:>8.2f} | IVA {dati_fattura["iva_perc"]:.1f}% | Totale: € {dati_fattura["totale"]:>8.2f}</p>
+        <p>PAGAMENTO: {dati_fattura["pagamento"]}</p>
     </div>
     """
     return html
 
 def fattura_to_xml(fattura, tipo):
-    """Converte fattura in XML FatturaPA semplificato"""
     fattura_xml = ET.Element("Fattura", tipo=tipo)
-    
     generali = ET.SubElement(fattura_xml, "Generale")
     ET.SubElement(generali, "Data").text = fattura["data"]
     ET.SubElement(generali, "Numero").text = fattura["numero"]
     ET.SubElement(generali, "Totale").text = f"{fattura['totale']:.2f}"
-    
     controparte = ET.SubElement(fattura_xml, "Controparte")
     ET.SubElement(controparte, "RagioneSociale").text = fattura["cliente_fornitore"]
     ET.SubElement(controparte, "PIVA").text = fattura["piva"]
-    
-    importi = ET.SubElement(fattura_xml, "Importi")
-    ET.SubElement(importi, "Imponibile").text = f"{fattura['imponibile']:.2f}"
-    ET.SubElement(importi, "IVA").text = f"{fattura['iva']:.2f}"
-    ET.SubElement(importi, "IVA_Perc").text = f"{fattura['iva_perc']}%"
-    
-    ET.SubElement(fattura_xml, "Pagamento").text = fattura["pagamento"]
-    ET.SubElement(fattura_xml, "Note").text = fattura["note"] or ""
-    
     rough_string = ET.tostring(fattura_xml, 'unicode')
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
 
 def create_excel_buffer(df, sheet_name):
-    """Excel/CSV robusto"""
     if 'data' in df.columns:
         df = df.copy()
         df['data'] = df['data'].apply(formatta_data_df)
-    
     buffer = io.BytesIO()
     try:
         import openpyxl
@@ -223,9 +156,8 @@ def create_excel_buffer(df, sheet_name):
 # =============================================================================
 # SIDEBAR
 # =============================================================================
-
 st.sidebar.title("📊 **CONFIGURAZIONE**")
-anni = list(range(2020, 2050))
+anni = list(range(2020, 2051))
 st.session_state.anno_selezionato = st.sidebar.selectbox("📅 **Anno Fatture**", anni, index=anni.index(2026))
 
 if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
@@ -240,14 +172,16 @@ if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
     st.session_state.pagina = "anagrafiche"
     st.rerun()
 
+if st.sidebar.button("💾 **Salva Anagrafica**"):
+    salva_anagrafica_csv()
+    st.rerun()
+
 st.sidebar.info(f"**Anno: {st.session_state.anno_selezionato}**")
 
 # =============================================================================
 # PAGINE
 # =============================================================================
-
 if st.session_state.pagina == "home":
-    st.image("banner1.png", use_column_width=False)
     st.title("💼 **Fatturazione Aziendale** 💼")
     st.markdown("---")
     
@@ -270,15 +204,37 @@ if st.session_state.pagina == "home":
 
 elif st.session_state.pagina == "form":
     tipo = st.session_state.tipo
-    st.image("banner1.png", use_column_width=False)
     st.header(f"📄 **Nuova Fattura {tipo}**")
     
     col1, col2 = st.columns(2)
     with col1:
-        data = st.date_input("**📅 Data**", value=datetime.now(), format="DD/MM/YYYY")
+        data = st.date_input("**📅 Data**", value=date.today())
         numero = st.text_input("**🔢 Numero Protocollo**", 
-                              value=f"{st.session_state.anno_selezionato}/{len(st.session_state.dati_fatture[tipo])+1}")
-        nome = st.text_input("**👤 Cliente/Fornitore**", value="" if tipo == "Attiva" else "Fornitore")
+                              value=f"{st.session_state.anno_selezionato}/{len(st.session_state.dati_fattures[tipo])+1}")
+        
+        # SISTEMA RICERCA CLIENTI
+        anagrafica = st.session_state.anagrafica.copy()
+        query = st.text_input("🔍 **Cerca Cliente/Fornitore**", placeholder="Digita nome...")
+        
+        cliente_selezionato = ""
+        piva_input = ""
+        nuovo_cliente = ""
+        
+        if query:
+            clienti_filtrati = anagrafica[
+                anagrafica['nome'].str.contains(query, case=False, na=False)
+            ]['nome'].tolist()
+            
+            if clienti_filtrati:
+                cliente_selezionato = st.selectbox(
+                    "Seleziona:", options=[""] + clienti_filtrati, index=0
+                )
+            else:
+                st.warning("👤 Cliente non trovato")
+        
+        if cliente_selezionato:
+            record = anagrafica[anagrafica['nome']
+
         piva = st.text_input("**🆔 P.IVA / CF**")
     
     with col2:
