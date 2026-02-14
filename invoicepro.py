@@ -359,11 +359,14 @@ elif st.session_state.pagina == "storico":
                 use_container_width=True
             )
 
-
-            # Aggiungi bottone nell'interfaccia archivio
-            btn_cancella = tk.Button(archivio_frame, text="Cancella storico", 
-                                    command=cancella_storico, bg="red", fg="white")
-            btn_cancella.pack(pady=10)
+            if st.button(
+                label="🗑️ **Cancella Storico**",
+                use_container_width=True,
+                type="secondary"
+            ):
+                st.cache_data.clear()  # Cancella cache dati
+                st.session_state.clear()  # Cancella session state (conversazioni)
+                st.rerun()  # Ricarica la pagina pulita
 
             st.dataframe(df_passive, use_container_width=True, hide_index=True)
         else:
