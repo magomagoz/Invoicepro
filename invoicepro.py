@@ -248,9 +248,13 @@ st.sidebar.info(f"**Anno: {st.session_state.anno_selezionato}**")
 # PAGINE
 # =============================================================================
 
-if st.session_state.pagina == "home":
-    st.title("💼 **Fatturazione Aziendale** 💼")
-    st.markdown("---")
+st.image("banner1.png", use_column_width=False)
+st.title("💼 **Fatturazione Aziendale** 💼")
+
+
+#if st.session_state.pagina == "home":
+    #st.title("💼 **Fatturazione Aziendale** 💼")
+    #st.markdown("---")
     
     col1, col2 = st.columns(2, gap="large")
     with col1:
@@ -271,6 +275,7 @@ if st.session_state.pagina == "home":
 
 elif st.session_state.pagina == "form":
     tipo = st.session_state.tipo
+    st.image("banner1.png", use_column_width=False)
     st.header(f"📄 **Nuova Fattura {tipo}**")
     
     col1, col2 = st.columns(2)
@@ -352,6 +357,7 @@ elif st.session_state.pagina == "form":
             st.rerun()
 
 elif st.session_state.pagina == "storico":
+    st.image("banner1.png", use_column_width=False)
     st.header("📋 **Archivio Fatture**")
     
     col1, col2, col3, col4 = st.columns(4)
@@ -393,6 +399,7 @@ elif st.session_state.pagina == "storico":
         st.rerun()
 
 elif st.session_state.pagina == "anagrafiche":
+    st.image("banner1.png", use_column_width=False)
     st.header("👥 **Anagrafiche**")
     
     tab1, tab2 = st.tabs(["➕ Cliente", "➕ Fornitore"])
