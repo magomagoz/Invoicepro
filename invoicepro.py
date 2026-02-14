@@ -3,13 +3,25 @@ import json
 import os
 import pandas as pd
 import io
-from datetime import datetime, date
+from datetime import datetime
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 # =============================================================================
 # INIZIALIZZAZIONE SESSION STATE (SENZA LIBRERIE ESTERNE)
 # =============================================================================
+
+def genera_fattura():
+    data_emissione = datetime.now().strftime("%d/%m/%Y")
+    fattura = {
+        "data": data_emissione,
+        # altri campi...
+    }
+    return fattura
+
+# Esempio: "Data: 14/02/2026"
+
+
 def formatta_data_df(data_str):
     """Converte data per dataframe in dd/mm/yyyy"""
     try:
