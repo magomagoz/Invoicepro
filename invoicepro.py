@@ -8,16 +8,24 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import base64
 
-# Carica anagrafica (CSV o session_state)
-if 'anagrafica' not in st.session_state:
-    # Simula anagrafica, sostituisci con pd.read_csv("clienti.csv")
-    st.session_state.anagrafica = pd.DataFrame({
-        'nome': ['Mario Rossi', 'Luca Bianchi', 'Anna Verdi'],
-        'piva': ['IT12345678901', 'IT98765432109', 'IT55566677788'],
-        'indirizzo': ['Via Roma 1', 'Via Milano 2', 'Via Napoli 3']
-    })
+# =============================================================================
+# INIZIALIZZAZIONE ANAGRAFICA
+# =============================================================================
 
-anagrafica = st.session_state.anagrafica.copy()
+if 'anagrafica' not in st.session_state:
+    try:
+        st.session_state.anagrafica = pd.read_csv("anagrafica.csv")
+        # Rinomina colonne se necessario
+        if 'ragione_sociale' in st.session_state.anagrafica.columns:
+            st.session_state.anagrafica = st.session_state.anagrafica.rename(columns={
+                'ragione_sociale': 'nome', 'piva': 'piva', 'indirizzo': 'indirizzo'
+            })
+    except:
+        st.session_state.anagrafica = pd.DataFrame({
+            'nome': ['Mario Rossi', 'Luca Bianchi', 'Anna Verdi'],
+            'piva': ['IT12345678901', 'IT98765432109', 'IT55566677788'],
+            'indirizzo': ['Via Roma 1', 'Via Milano 2', 'Via Napoli 3']
+        })
 
 # =============================================================================
 # FUNZIONI UTILITY
@@ -40,7 +48,6 @@ def init_session_state():
     defaults = {
         'dati_fatture': carica_dati_sicuro(),
         'pagina': 'home',
-        'anagrafiche': carica_anagrafiche(),
         'form_dati_salvati': False,
         'form_dati_temp': {},
         'tipo': None,
@@ -83,16 +90,6 @@ def carica_dati_sicuro():
         pass
     return {"Attiva": [], "Passiva": []}
 
-def carica_anagrafiche():
-    """Carica anagrafiche con fallback"""
-    try:
-        if os.path.exists("anagrafiche.json"):
-            with open("anagrafiche.json", "r", encoding='utf-8') as f:
-                return json.load(f)
-    except:
-        pass
-    return {"clienti": [], "fornitori": []}
-
 def salva_dati(dati):
     """Salva fatture con gestione errori"""
     try:
@@ -102,14 +99,13 @@ def salva_dati(dati):
     except Exception as e:
         st.error(f"❌ Errore salvataggio: {e}")
 
-def salva_anagrafiche(dati):
-    """Salva anagrafiche"""
+def salva_anagrafica_csv():
+    """Salva anagrafica su CSV"""
     try:
-        with open("anagrafiche.json", "w", encoding='utf-8') as f:
-            json.dump(dati, f, indent=4, ensure_ascii=False)
-        st.success("✅ Anagrafiche salvate!")
-    except:
-        st.error("❌ Errore salvataggio anagrafiche")
+        st.session_state.anagrafica.to_csv("anagrafica.csv", index=False)
+        st.success("✅ Anagrafica salvata!")
+    except Exception as e:
+        st.error(f"❌ Errore: {e}")
 
 def calcola_totali(imponibile, iva_perc):
     """Calcola IVA e totale"""
@@ -253,6 +249,11 @@ if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
     st.session_state.pagina = "anagrafiche"
     st.rerun()
 
+# Pulsante salva anagrafica nella sidebar
+if st.sidebar.button("💾 **Salva Anagrafica**"):
+    salva_anagrafica_csv()
+    st.rerun()
+
 st.sidebar.info(f"**Anno: {st.session_state.anno_selezionato}**")
 
 # =============================================================================
@@ -260,7 +261,6 @@ st.sidebar.info(f"**Anno: {st.session_state.anno_selezionato}**")
 # =============================================================================
 
 if st.session_state.pagina == "home":
-    st.image("banner1.png", use_column_width=False)
     st.title("💼 **Fatturazione Aziendale** 💼")
     st.markdown("---")
     
@@ -283,22 +283,21 @@ if st.session_state.pagina == "home":
 
 elif st.session_state.pagina == "form":
     tipo = st.session_state.tipo
-    st.image("banner1.png", use_column_width=False)
     st.header(f"📄 **Nuova Fattura {tipo}**")
     
     col1, col2 = st.columns(2)
     with col1:
-        data = st.date_input("**📅 Data**", value=datetime.now(), format="DD/MM/YYYY")
+        data = st.date_input("**📅 Data**", value=date.today())
         numero = st.text_input("**🔢 Numero Protocollo**", 
                               value=f"{st.session_state.anno_selezionato}/{len(st.session_state.dati_fatture[tipo])+1}")
-        # === SOSTITUISCI IL TUO CAMPO CLIENTE CON QUESTO ===
-        anagrafica = st.session_state.anagrafica.copy()
         
-        # Filtro ricerca
-        query = st.text_input("🔍 Cerca Cliente/Fornitore", placeholder="Digita nome...")
+        # === SISTEMA RICERCA CLIENTI ===
+        anagrafica = st.session_state.anagrafica.copy()
+        query = st.text_input("🔍 **Cerca Cliente/Fornitore**", placeholder="Digita nome...")
         
         cliente_selezionato = ""
-        piva = ""
+        piva_input = ""
+        nuovo_cliente = ""
         
         if query:
             clienti_filtrati = anagrafica[
@@ -312,38 +311,34 @@ elif st.session_state.pagina == "form":
             else:
                 cliente_selezionato = ""
                 st.warning("👤 Cliente non trovato")
-        else:
-            cliente_selezionato = ""
         
         # Auto-compilazione P.IVA
         if cliente_selezionato:
             record = anagrafica[anagrafica['nome'] == cliente_selezionato].iloc[0]
-            col1, col2 = st.columns([2, 1])
-            with col1:
+            col_cl1, col_cl2 = st.columns([2, 1])
+            with col_cl1:
                 st.text_input("Cliente", value=cliente_selezionato, disabled=True)
-            with col2:
-                piva = st.text_input("P.IVA", value=record['piva'] if pd.notna(record['piva']) else "")
-                
+            with col_cl2:
+                piva_input = st.text_input("P.IVA", 
+                    value=record['piva'] if pd.notna(record['piva']) else "", 
+                    key="piva_selezionato")
         elif query:
-            col1, col2 = st.columns(2)
-            with col1:
-                nuovo_cliente = st.text_input("Nuovo Cliente")
-            with col2:
-                piva = st.text_input("P.IVA")
+            col_cl1, col_cl2 = st.columns(2)
+            with col_cl1:
+                nuovo_cliente = st.text_input("Nuovo Cliente", key="nuovo_cliente")
+            with col_cl2:
+                piva_input = st.text_input("P.IVA", key="piva_nuovo")
             
-            if st.button("➕ Aggiungi") and nuovo_cliente:
-                nuovo_record = pd.DataFrame({
-                    'nome': [nuovo_cliente], 'piva': [piva], 'indirizzo': [""]
-                })
-                st.session_state.anagrafica = pd.concat([st.session_state.anagrafica, nuovo_record])
-                st.success("✅ Aggiunto!")
-                st.rerun()
-        
-        # Ora usa 'cliente_selezionato' e 'piva' nelle tue righe successive
-        cliente = cliente_selezionato
-        # === FINE SOSTITUZIONE ===
-
-        piva = st.text_input("**🆔 P.IVA / CF**")
+            if st.button("➕ **Aggiungi ad Anagrafica**", key="aggiungi_cliente"):
+                if nuovo_cliente:
+                    nuovo_record = pd.DataFrame({
+                        'nome': [nuovo_cliente.strip()], 
+                        'piva': [piva_input.strip()], 
+                        'indirizzo': [""]
+                    })
+                    st.session_state.anagrafica = pd.concat([st.session_state.anagrafica, nuovo_record], ignore_index=True)
+                    st.success("✅ Cliente aggiunto!")
+                    st.rerun()
     
     with col2:
         imponibile = st.number_input("**💰 Imponibile (€)**", min_value=0.0, step=0.01, format="%.2f")
@@ -358,17 +353,21 @@ elif st.session_state.pagina == "form":
     
     note = st.text_area("**📝 Note**", height=100)
     
+    # === SALVATAGGIO DATI CORRETTO ===
+    cliente_finale = cliente_selezionato if cliente_selezionato else nuovo_cliente
+    piva_finale = piva_input
+    
     st.session_state.form_dati_temp = {
         "data": data.strftime("%d/%m/%Y"),
         "numero": numero,
-        "cliente_fornitore": nome.strip(),
-        "piva": piva.strip(),
+        "cliente_fornitore": cliente_finale.strip() if cliente_finale else "",
+        "piva": piva_finale.strip() if piva_finale else "",
         "imponibile": float(imponibile),
         "iva_perc": float(iva_perc),
         "iva": float(iva),
         "totale": float(totale),
         "pagamento": pagamento,
-        "note": note.strip()
+        "note": note.strip() if note else ""
     }
     
     col1, col2, col3, col4 = st.columns(4)
@@ -416,7 +415,6 @@ elif st.session_state.pagina == "form":
             st.rerun()
 
 elif st.session_state.pagina == "storico":
-    st.image("banner1.png", use_column_width=False)
     st.header("📋 **Archivio Fatture**")
     
     col1, col2, col3, col4 = st.columns(4)
@@ -428,7 +426,7 @@ elif st.session_state.pagina == "storico":
     tab1, tab2 = st.tabs(["📤 Attiva", "📥 Passiva"])
     
     with tab1:
-        if st.session_state.dati_fatture["Attiva"]:
+        if st.session_state.dati_fattures["Attiva"]:
             df = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
             df['data'] = df['data'].apply(formatta_data_df)
             buffer_data, mime_type, file_ext = create_excel_buffer(df, "Fatture_Attive")
@@ -444,100 +442,4 @@ elif st.session_state.pagina == "storico":
         if st.session_state.dati_fatture["Passiva"]:
             df = pd.DataFrame(st.session_state.dati_fatture["Passiva"])
             df['data'] = df['data'].apply(formatta_data_df)
-            buffer_data, mime_type, file_ext = create_excel_buffer(df, "Fatture_Passive")
-            col1, col2 = st.columns(2)
-            col1.download_button("⬇️ Excel", data=buffer_data, file_name=f"Passive_{datetime.now().strftime('%Y%m%d')}{file_ext}", mime=mime_type)
-            csv_data = df.to_csv(index=False, sep=';', encoding='utf-8').encode('utf-8')
-            col2.download_button("📄 CSV", data=csv_data, file_name=f"Passive_{datetime.now().strftime('%Y%m%d')}.csv", mime='text/csv')
-            st.dataframe(df, use_container_width=True, hide_index=True)
-        else:
-            st.info("Nessuna fattura passiva")
-    
-    if st.button("🏠 Home", use_container_width=True):
-        st.session_state.pagina = "home"
-        st.rerun()
-
-elif st.session_state.pagina == "anagrafiche":
-    st.image("banner1.png", use_column_width=False)
-    st.header("👥 **Anagrafiche**")
-    
-    tab1, tab2 = st.tabs(["➕ Cliente", "➕ Fornitore"])
-    
-    with tab1:
-        with st.form("cliente"):
-            col1, col2 = st.columns(2)
-            with col1:
-                rag_sociale = st.text_input("Ragione Sociale")
-                piva = st.text_input("P.IVA")
-            with col2:
-                email = st.text_input("Email")
-                telefono = st.text_input("Telefono")
-            
-            if st.form_submit_button("💾 Salva", type="primary"):
-                if rag_sociale and piva:
-                    if valida_piva(piva):
-                        cliente = {
-                            "ragione_sociale": rag_sociale.strip(),
-                            "piva": piva.strip(),
-                            "email": email.strip(),
-                            "telefono": telefono.strip(),
-                            "timestamp": datetime.now().isoformat()
-                        }
-                        st.session_state.anagrafiche["clienti"].append(cliente)
-                        salva_anagrafiche(st.session_state.anagrafiche)
-                        st.success("Cliente salvato!")
-                        st.rerun()
-                    else:
-                        st.error("P.IVA non valida")
-                else:
-                    st.error("Compila tutti i campi")
-    
-    with tab2:
-        with st.form("fornitore"):
-            col1, col2 = st.columns(2)
-            with col1:
-                rag_sociale_f = st.text_input("Ragione Sociale")
-                piva_f = st.text_input("P.IVA")
-            with col2:
-                email_f = st.text_input("Email")
-                telefono_f = st.text_input("Telefono")
-            
-            if st.form_submit_button("💾 Salva", type="primary"):
-                if rag_sociale_f and piva_f:
-                    if valida_piva(piva_f):
-                        fornitore = {
-                            "ragione_sociale": rag_sociale_f.strip(),
-                            "piva": piva_f.strip(),
-                            "email": email_f.strip(),
-                            "telefono": telefono_f.strip(),
-                            "timestamp": datetime.now().isoformat()
-                        }
-                        st.session_state.anagrafiche["fornitori"].append(fornitore)
-                        salva_anagrafiche(st.session_state.anagrafiche)
-                        st.success("Fornitore salvato!")
-                        st.rerun()
-                    else:
-                        st.error("P.IVA non valida")
-                else:
-                    st.error("Compila tutti i campi")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("🏢 Clienti")
-        for c in st.session_state.anagrafiche["clienti"]:
-            st.write(f"**{c['ragione_sociale']}** - {c['piva']}")
-    
-    with col2:
-        st.subheader("🏭 Fornitori")
-        for f in st.session_state.anagrafiche["fornitori"]:
-            st.write(f"**{f['ragione_sociale']}** - {f['piva']}")
-    
-    if st.button("⬅️ Home", use_container_width=True):
-        st.session_state.pagina = "home"
-
-        # === AGGIUNGI PRIMA DEL MAIN LOOP ===
-    if st.button("💾 Salva Anagrafica"):
-        st.session_state.anagrafica.to_csv("anagrafica.csv", index=False)
-        st.success("📁 Anagrafica salvata!")
-
-        st.rerun()
+            buffer_data, mime_type,
