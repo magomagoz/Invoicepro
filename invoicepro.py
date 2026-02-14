@@ -117,7 +117,7 @@ def crea_pdf_fattura_semplice(dati_fattura, tipo="Attiva"):
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 2px solid #1e3a8a;">
         <div style="display: flex; align-items: center; margin-bottom: 20px;">
             <div style="width: 80px; height: 30px; background: #1e3a8a; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 20px;">
-                LOGO
+                logo_pdf.png
             </div>
             <h1 style="color: #1e3a8a; margin: 0; font-size: 28px;">FATTURA {tipo}</h1>
         </div>
