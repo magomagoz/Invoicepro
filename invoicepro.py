@@ -1,3 +1,4 @@
+import streamlit as st
 import json
 import os
 from datetime import datetime, date
@@ -11,9 +12,10 @@ import base64
 # CONFIGURAZIONE APP
 # =============================================================================
 
-st.set_page_config(page_title="Invoice Pro", page_icon="💼", layout="wide")
-
-init_session_state()
+st.set_page_config(
+    page_title="Invoice Pro",
+    page_icon="💼",
+    layout="wide"
 
 # =============================================================================
 # FUNZIONI UTILITY
