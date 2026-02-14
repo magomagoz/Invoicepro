@@ -113,6 +113,15 @@ def valida_fattura(dati):
         errori.append("❌ Numero protocollo obbligatorio")
     return errori
 
+def cancella_storico():
+    risposta = messagebox.askyesno("Conferma", "Eliminare TUTTE le fatture dallo storico?")
+    if risposta:
+        storico_fatture.clear()  # Svuota lista
+        # Oppure: apri file e sovrascrivi con lista vuota
+        salva_storico([])  
+        messagebox.showinfo("Fatto", "Storico cancellato!")
+        aggiorna_lista_archivio()  # Ricarica interfaccia
+
 def formatta_data_df(data_str):
     try:
         if pd.isna(data_str) or data_str == "":
@@ -339,7 +348,7 @@ elif st.session_state.pagina == "storico":
         if st.session_state.dati_fatture["Passiva"]:
             df_passive = pd.DataFrame(st.session_state.dati_fatture["Passiva"])
             df_passive['data'] = df_passive['data'].apply(formatta_data_df)
-            
+
             # Bottone esportazione
             csv_data = df_passive.to_csv(index=False, sep=';', encoding='utf-8').encode('utf-8')
             st.download_button(
@@ -349,7 +358,13 @@ elif st.session_state.pagina == "storico":
                 mime='text/csv',
                 use_container_width=True
             )
-            
+
+
+            # Aggiungi bottone nell'interfaccia archivio
+            btn_cancella = tk.Button(archivio_frame, text="Cancella storico", 
+                                    command=cancella_storico, bg="red", fg="white")
+            btn_cancella.pack(pady=10)
+
             st.dataframe(df_passive, use_container_width=True, hide_index=True)
         else:
             st.info("👆 **Nessuna fattura passiva**. Crea la prima dalla Home!")
