@@ -213,11 +213,7 @@ def create_excel_buffer(df, sheet_name):
 # CONFIGURAZIONE APP
 # =============================================================================
 
-st.set_page_config(
-    page_title="Invoice Pro",
-    page_icon="💼",
-    layout="wide"
-)
+st.set_page_config(page_title="Invoice Pro", page_icon="💼", layout="wide")
 
 init_session_state()
 
@@ -226,7 +222,7 @@ init_session_state()
 # =============================================================================
 
 st.sidebar.title("📊 **CONFIGURAZIONE**")
-anni = list(range(2020, 2051))
+anni = list(range(2020, 2050))
 st.session_state.anno_selezionato = st.sidebar.selectbox("📅 **Anno Fatture**", anni, index=anni.index(2026))
 
 if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
