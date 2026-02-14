@@ -172,9 +172,9 @@ if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
     st.session_state.pagina = "anagrafiche"
     st.rerun()
 
-if st.sidebar.button("💾 **Salva Anagrafica**"):
-    salva_anagrafica_csv()
-    st.rerun()
+    if st.sidebar.button("💾 **Salva Anagrafica**"):
+        salva_anagrafica_csv()
+        st.rerun()
 
 st.sidebar.info(f"**Anno: {st.session_state.anno_selezionato}**")
 
