@@ -10,18 +10,6 @@ from xml.dom import minidom
 # =============================================================================
 # INIZIALIZZAZIONE SESSION STATE (SENZA LIBRERIE ESTERNE)
 # =============================================================================
-
-def genera_fattura():
-    data_emissione = datetime.now().strftime("%d/%m/%Y")
-    fattura = {
-        "data": data_emissione,
-        # altri campi...
-    }
-    return fattura
-
-# Esempio: "Data: 14/02/2026"
-
-
 def formatta_data_df(data_str):
     """Converte data per dataframe in dd/mm/yyyy"""
     try:
@@ -399,7 +387,7 @@ elif st.session_state.pagina == "storico":
                 st.download_button(
                     label="⬇️ **Excel Attive**",
                     data=buffer_data,
-                    file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d_%H%M')}{file_ext}",
+                    file_name=f"Fatture_Attive_{datetime.now().strftime('%d%m%Y_%H%M')}{file_ext}",
                     mime=mime_type,
                     use_container_width=True
                 )
@@ -408,7 +396,7 @@ elif st.session_state.pagina == "storico":
                 st.download_button(
                     label="📄 **CSV Attive**",
                     data=csv_data,
-                    file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                    file_name=f"Fatture_Attive_{datetime.now().strftime('%d%m%Y_%H%M')}.csv",
                     mime='text/csv',
                     use_container_width=True
                 )
@@ -429,7 +417,7 @@ elif st.session_state.pagina == "storico":
                 st.download_button(
                     label="⬇️ **Excel Passive**",
                     data=buffer_data,
-                    file_name=f"Fatture_Passive_{datetime.now().strftime('%Y%m%d_%H%M')}{file_ext}",
+                    file_name=f"Fatture_Passive_{datetime.now().strftime('%d%m%Y_%H%M')}{file_ext}",
                     mime=mime_type,
                     use_container_width=True
                 )
@@ -438,7 +426,7 @@ elif st.session_state.pagina == "storico":
                 st.download_button(
                     label="📄 **CSV Passive**",
                     data=csv_data,
-                    file_name=f"Fatture_Passive_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                    file_name=f"Fatture_Passive_{datetime.now().strftime('%d%m%Y_%H%M')}.csv",
                     mime='text/csv',
                     use_container_width=True
                 )
