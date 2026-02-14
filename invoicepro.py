@@ -375,26 +375,15 @@ elif st.session_state.pagina == "storico":
             df_passive = pd.DataFrame(st.session_state.dati_fatture["Passiva"])
             df_passive['data'] = df_passive['data'].apply(formatta_data_df)
             
-            # Bottoni esportazione
-            col1, col2 = st.columns(2)
-            with col1:
-                buffer_data, mime_type, file_ext = create_excel_buffer(df_passive, "Fatture_Passive")
-                st.download_button(
-                    label="⬇️ **Excel Passive**",
-                    data=buffer_data,
-                    file_name=f"Fatture_Passive_{datetime.now().strftime('%d%m%Y_%H%M')}{file_ext}",
-                    mime=mime_type,
-                    use_container_width=True
-                )
-            with col2:
-                csv_data = df_passive.to_csv(index=False, sep=';', encoding='utf-8').encode('utf-8')
-                st.download_button(
-                    label="📄 **CSV Passive**",
-                    data=csv_data,
-                    file_name=f"Fatture_Passive_{datetime.now().strftime('%d%m%Y_%H%M')}.csv",
-                    mime='text/csv',
-                    use_container_width=True
-                )
+            # Bottone esportazione
+            csv_data = df_passive.to_csv(index=False, sep=';', encoding='utf-8').encode('utf-8')
+            st.download_button(
+                label="📄 **CSV Passive**",
+                data=csv_data,
+                file_name=f"Fatture_Passive_{datetime.now().strftime('%d%m%Y_%H%M')}.csv",
+                mime='text/csv',
+                use_container_width=True
+            )
             
             st.dataframe(df_passive, use_container_width=True, hide_index=True)
         else:
