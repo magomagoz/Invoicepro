@@ -226,7 +226,7 @@ elif st.session_state.pagina == "form":
         piva = st.text_input("**🆔 P.IVA / CF**", value="")
     
     with col2:
-        imponibile = st.number_input("**💰 Imponibile (€)**", min_value="", step=0.01, format="%.2f")
+        imponibile = st.number_input("**💰 Imponibile (€)**", min_value=0.0, step=0.01, format="%.2f")
         iva_perc = st.number_input("**📊 Aliquota IVA (%)**", min_value=0.0, value=22.0, step=0.1)
         pagamento = st.selectbox("**💳 Modalità Pagamento**", 
                                ["Bonifico 30gg", "Bonifico 60gg", "Anticipo", "Contanti", "Ri.Ba.", "Bonifico immediato"])
