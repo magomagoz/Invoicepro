@@ -210,7 +210,7 @@ elif st.session_state.pagina == "form":
     with col1:
         data = st.date_input("**📅 Data**", value=datetime.now())
         numero = st.text_input("**🔢 Numero Protocollo**", 
-                              value=f"{anno_selezionato}/{len(st.session_state.dati_fatture[tipo])+1}")
+                              value=f"{anno}/{len(st.session_state.dati_fatture[tipo])+1}")
         nome = st.text_input("**👤 Cliente/Fornitore**", value="Cliente" if tipo == "Attiva" else "Fornitore")
         piva = st.text_input("**🆔 P.IVA / CF**", value="")
     
