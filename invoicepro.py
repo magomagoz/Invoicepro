@@ -34,6 +34,14 @@ if 'anagrafica' not in st.session_state:
             'indirizzo': ['Via Roma 1', 'Via Milano 2', 'Via Napoli 3']
         })
 
+if 'dati_fatture' not in st.session_state:
+    st.session_state.dati_fatture = {}  # Initialize as empty dict[web:14]
+
+if tipo not in st.session_state.dati_fatture:
+    st.session_state.dati_fatture[tipo] = []  # Initialize empty list for this tipo[web:11]
+
+value = f"{anno_selezionato}/{len(st.session_state.dati_fatture[tipo]) + 1}"
+
 # =============================================================================
 # 3. INIZIALIZZAZIONE SESSION STATE
 # =============================================================================
