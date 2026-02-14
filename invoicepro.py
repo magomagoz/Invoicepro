@@ -534,4 +534,10 @@ elif st.session_state.pagina == "anagrafiche":
     
     if st.button("⬅️ Home", use_container_width=True):
         st.session_state.pagina = "home"
+
+        # === AGGIUNGI PRIMA DEL MAIN LOOP ===
+    if st.button("💾 Salva Anagrafica"):
+        st.session_state.anagrafica.to_csv("anagrafica.csv", index=False)
+        st.success("📁 Anagrafica salvata!")
+
         st.rerun()
