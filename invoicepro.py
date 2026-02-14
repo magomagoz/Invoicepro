@@ -1,19 +1,52 @@
 import streamlit as st
 import json
 import os
-from datetime import datetime, date
 import pandas as pd
 import io
+import yaml
+from yaml.loader import SafeLoader
+from datetime import datetime, date
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
-import base64
-
-# Initialize at script start - runs every rerun safely
-if 'dati_fatture' not in st.session_state:
-    st.session_state.dati_fatture = {}
+import openpyxl
+from openpyxl.styles import Font
 
 # =============================================================================
-# 1. CONFIG PAGE - PRIMA COSA
+# 🔐 AUTENTICAZIONE - PRIMA DI TUTTO
+# =============================================================================
+try:
+    with open('config.yaml') as file:
+        config = yaml.load(file, Loader=SafeLoader)
+
+    authenticator = stauth.Authenticate(
+        config['credentials'],
+        config['cookie']['name'],
+        config['cookie']['key'],
+        config['cookie']['expiry_days'],
+        config['preauthorized']
+    )
+
+    name, authentication_status, username = authenticator.login(
+        "🔐 **INVOICE PRO - Login**",
+        "main"
+    )
+
+    if authentication_status == False:
+        st.error("❌ **Credenziali errate**")
+        st.stop()
+    elif authentication_status == None:
+        st.warning("⚠️ **Inserisci username e password**")
+        st.stop()
+    elif authentication_status:
+        st.sidebar.success(f"👋 Benvenuto **{name}**")
+        authenticator.logout("🚪 **Logout**", "sidebar")
+
+except:
+    st.error("❌ **File config.yaml mancante o errore configurazione**")
+    st.stop()
+
+# =============================================================================
+# CONFIG PAGE
 # =============================================================================
 st.set_page_config(
     page_title="Invoice Pro",
@@ -22,40 +55,12 @@ st.set_page_config(
 )
 
 # =============================================================================
-# 2. INIZIALIZZAZIONE ANAGRAFICA
-# =============================================================================
-if 'anagrafica' not in st.session_state:
-    try:
-        st.session_state.anagrafica = pd.read_csv("anagrafica.csv")
-        if 'ragione_sociale' in st.session_state.anagrafica.columns:
-            st.session_state.anagrafica = st.session_state.anagrafica.rename(columns={
-                'ragione_sociale': 'nome'
-            })
-    except:
-        st.session_state.anagrafica = pd.DataFrame({
-            'nome': ['Mario Rossi', 'Luca Bianchi', 'Anna Verdi'],
-            'piva': ['IT12345678901', 'IT98765432109', 'IT55566677788'],
-            'indirizzo': ['Via Roma 1', 'Via Milano 2', 'Via Napoli 3']
-        })
-
-if 'dati_fatture' not in st.session_state:
-    st.session_state.dati_fatture = {}  # Initialize as empty dict[web:14]
-
-#if tipo not in st.session_state.dati_fatture:
-    #st.session_state.dati_fatture[tipo] = []
-
-
-if tipo not in st.session_state.dati_fatture:
-    st.session_state.dati_fatture[tipo] = []  # Initialize empty list for this tipo[web:11]
-
-value = f"{anno_selezionato}/{len(st.session_state.dati_fatture[tipo]) + 1}"
-
-# =============================================================================
-# 3. INIZIALIZZAZIONE SESSION STATE
+# INIZIALIZZAZIONE SESSION STATE
 # =============================================================================
 def init_session_state():
     defaults = {
         'dati_fatture': {"Attiva": [], "Passiva": []},
+        'anagrafiche': {"clienti": [], "fornitori": []},
         'pagina': 'home',
         'form_dati_salvati': False,
         'form_dati_temp': {},
@@ -69,57 +74,46 @@ def init_session_state():
 
 init_session_state()
 
-# =============================================================================
-# FUNZIONI UTILITY
-# =============================================================================
-def formatta_data_df(data_str):
-    try:
-        if pd.isna(data_str):
-            return ""
-        if isinstance(data_str, str) and '/' in data_str:
-            return data_str
-        dt = pd.to_datetime(data_str)
-        return dt.strftime("%d/%m/%Y")
-    except:
-        return str(data_str)
+# Carica dati persistenti
+def carica_dati():
+    if os.path.exists("fatture.json"):
+        try:
+            with open("fatture.json", "r", encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            pass
+    return {"Attiva": [], "Passiva": []}
 
-def valida_piva(piva):
-    piva = piva.replace("IT", "").replace(" ", "").strip().upper()
-    return len(piva) == 11 and piva.isdigit()
-
-def valida_cf(cf):
-    cf = cf.replace(" ", "").strip().upper()
-    return len(piva) == 16
-
-def valida_fattura(dati):
-    errori = []
-    if not dati.get("cliente_fornitore", "").strip():
-        errori.append("❌ Cliente/Fornitore obbligatorio")
-    if not dati.get("piva", "").strip():
-        errori.append("❌ P.IVA/CF obbligatorio")
-    elif not valida_piva(dati["piva"]):
-        errori.append("❌ P.IVA non valida (11 cifre numeriche)")
-    if float(dati.get("imponibile", 0)) <= 0:
-        errori.append("❌ Imponibile deve essere > 0")
-    if not dati.get("numero", "").strip():
-        errori.append("❌ Numero protocollo obbligatorio")
-    return errori
+def carica_anagrafiche():
+    if os.path.exists("anagrafiche.json"):
+        try:
+            with open("anagrafiche.json", "r", encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            pass
+    return {"clienti": [], "fornitori": []}
 
 def salva_dati(dati):
     try:
         with open("fatture.json", "w", encoding='utf-8') as f:
             json.dump(dati, f, indent=4, ensure_ascii=False)
-        st.success("✅ Dati salvati correttamente!")
     except Exception as e:
-        st.error(f"❌ Errore salvataggio: {e}")
+        st.error(f"Errore salvataggio: {e}")
 
-def salva_anagrafica_csv():
+def salva_anagrafiche(dati):
     try:
-        st.session_state.anagrafica.to_csv("anagrafica.csv", index=False)
-        st.success("✅ Anagrafica salvata!")
+        with open("anagrafiche.json", "w", encoding='utf-8') as f:
+            json.dump(dati, f, indent=4, ensure_ascii=False)
     except Exception as e:
-        st.error(f"❌ Errore: {e}")
+        st.error(f"Errore salvataggio: {e}")
 
+# Aggiorna dati da file
+st.session_state.dati_fatture = carica_dati()
+st.session_state.anagrafiche = carica_anagrafiche()
+
+# =============================================================================
+# FUNZIONI UTILITY
+# =============================================================================
 def calcola_totali(imponibile, iva_perc):
     try:
         imp = float(imponibile or 0)
@@ -130,16 +124,49 @@ def calcola_totali(imponibile, iva_perc):
     except:
         return 0.0, 0.0
 
+def valida_piva(piva):
+    piva = piva.replace("IT", "").replace(" ", "").strip().upper()
+    return len(piva) == 11 and piva.isdigit()
+
+def valida_fattura(dati):
+    errori = []
+    if not dati.get("cliente_fornitore", "").strip():
+        errori.append("❌ Cliente/Fornitore obbligatorio")
+    if not dati.get("piva", "").strip():
+        errori.append("❌ P.IVA/CF obbligatorio")
+    elif not valida_piva(dati["piva"]):
+        errori.append("❌ P.IVA non valida (11 cifre)")
+    if float(dati.get("imponibile", 0)) <= 0:
+        errori.append("❌ Imponibile > 0")
+    if not dati.get("numero", "").strip():
+        errori.append("❌ Numero protocollo obbligatorio")
+    return errori
+
+def formatta_data_df(data_str):
+    try:
+        if pd.isna(data_str) or data_str == "":
+            return ""
+        if isinstance(data_str, str) and '/' in data_str:
+            return data_str
+        dt = pd.to_datetime(data_str)
+        return dt.strftime("%d/%m/%Y")
+    except:
+        return str(data_str)
+
 def crea_pdf_fattura_semplice(dati_fattura, tipo="Attiva"):
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 2px solid #1e3a8a;">
-        <h1 style="color: #1e3a8a;">FATTURA {tipo}</h1>
-        <h3>Data: {dati_fattura["data"]} | Nº: {dati_fattura["numero"]}</h3>
+        <h1 style="color: #1e3a8a; text-align: center;">FATTURA {tipo}</h1>
+        <h3 style="color: #1e3a8a;">Data: {dati_fattura["data"]} | Nº: {dati_fattura["numero"]}</h3>
         <h3>{'CLIENTE' if tipo == 'Attiva' else 'FORNITORE'}</h3>
-        <p>{dati_fattura["cliente_fornitore"]}</p>
+        <p><strong>{dati_fattura["cliente_fornitore"]}</strong></p>
         <p>P.IVA: {dati_fattura["piva"]}</p>
-        <p>Imponibile: € {dati_fattura["imponibile"]:>8.2f} | IVA {dati_fattura["iva_perc"]:.1f}% | Totale: € {dati_fattura["totale"]:>8.2f}</p>
-        <p>PAGAMENTO: {dati_fattura["pagamento"]}</p>
+        <hr>
+        <p><strong>Imponibile:</strong> € {dati_fattura["imponibile"]:>8.2f}</p>
+        <p><strong>IVA {dati_fattura["iva_perc"]:.1f}%:</strong> € {dati_fattura["iva"]:>8.2f}</p>
+        <h2 style="color: #1e3a8a;"><strong>TOTALE: € {dati_fattura["totale"]:>8.2f}</strong></h2>
+        <p><strong>PAGAMENTO:</strong> {dati_fattura["pagamento"]}</p>
+        <p><em>{dati_fattura["note"]}</em></p>
     </div>
     """
     return html
@@ -150,35 +177,68 @@ def fattura_to_xml(fattura, tipo):
     ET.SubElement(generali, "Data").text = fattura["data"]
     ET.SubElement(generali, "Numero").text = fattura["numero"]
     ET.SubElement(generali, "Totale").text = f"{fattura['totale']:.2f}"
+    
     controparte = ET.SubElement(fattura_xml, "Controparte")
     ET.SubElement(controparte, "RagioneSociale").text = fattura["cliente_fornitore"]
     ET.SubElement(controparte, "PIVA").text = fattura["piva"]
+    
+    importi = ET.SubElement(fattura_xml, "Importi")
+    ET.SubElement(importi, "Imponibile").text = f"{fattura['imponibile']:.2f}"
+    ET.SubElement(importi, "IVA").text = f"{fattura['iva']:.2f}"
+    ET.SubElement(importi, "IVA_Perc").text = f"{fattura['iva_perc']}%"
+    
+    ET.SubElement(fattura_xml, "Pagamento").text = fattura["pagamento"]
+    ET.SubElement(fattura_xml, "Note").text = fattura["note"]
+    
     rough_string = ET.tostring(fattura_xml, 'unicode')
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
 
 def create_excel_buffer(df, sheet_name):
+    if len(df) == 0:
+        return b"", "text/plain", ".txt"
+    
     if 'data' in df.columns:
         df = df.copy()
         df['data'] = df['data'].apply(formatta_data_df)
+    
     buffer = io.BytesIO()
-    try:
-        import openpyxl
-        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
-        buffer.seek(0)
-        return buffer.getvalue(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx"
-    except:
-        csv_buffer = io.StringIO()
-        df.to_csv(csv_buffer, index=False, sep=';', encoding='utf-8')
-        return csv_buffer.getvalue().encode('utf-8'), "text/csv", ".csv"
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name=sheet_name, index=False)
+        
+        workbook = writer.book
+        worksheet = writer.sheets[sheet_name]
+        
+        # Auto-adjust colonne
+        for column in worksheet.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        # Intestazioni bold
+        for cell in worksheet[1]:
+            cell.font = Font(bold=True)
+    
+    buffer.seek(0)
+    return buffer.getvalue(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx"
 
 # =============================================================================
 # SIDEBAR
 # =============================================================================
 st.sidebar.title("📊 **CONFIGURAZIONE**")
 anni = list(range(2020, 2051))
-st.session_state.anno_selezionato = st.sidebar.selectbox("📅 **Anno Fatture**", anni, index=anni.index(2026))
+st.session_state.anno_selezionato = st.sidebar.selectbox(
+    "📅 **Anno Fatture**", 
+    anni, 
+    index=anni.index(2026)
+)
 
 if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
     st.session_state.pagina = "home"
@@ -192,43 +252,50 @@ if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
     st.session_state.pagina = "anagrafiche"
     st.rerun()
 
-    if st.sidebar.button("💾 **Salva Anagrafica**"):
-        salva_anagrafica_csv()
-        st.rerun()
-
-st.sidebar.info(f"**Anno: {st.session_state.anno_selezionato}**")
+st.sidebar.markdown("---")
+st.sidebar.info(f"**Anno selezionato: {st.session_state.anno_selezionato}**")
 
 # =============================================================================
-# PAGINE
+# PAGINE PRINCIPALI
 # =============================================================================
 if st.session_state.pagina == "home":
-    st.title("💼 **Fatturazione Aziendale** 💼")
+    st.image("logo1.png", use_column_width=False, caption="Invoice Pro")
+    st.title("💼 **Fatturazione Aziendale Professionale** 💼")
     st.markdown("---")
     
     col1, col2 = st.columns(2, gap="large")
+    
     with col1:
         st.markdown("### 🟢 **FATTURE ATTIVE**")
-        if st.button("**➕ INIZIA NUOVA**", key="attiva_go", use_container_width=True):
+        st.markdown("*Fatture emesse ai clienti*")
+        if st.button("**➕ INIZIA NUOVA**", key="attiva_go", use_container_width=True, type="primary"):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Attiva"
             st.session_state.form_dati_salvati = False
+            st.session_state.form_dati_temp = {}
             st.rerun()
     
     with col2:
         st.markdown("### 🔵 **FATTURE PASSIVE**")
-        if st.button("**➕ INIZIA NUOVA**", key="passiva_go", use_container_width=True):
+        st.markdown("*Fatture ricevute dai fornitori*")
+        if st.button("**➕ INIZIA NUOVA**", key="passiva_go", use_container_width=True, type="primary"):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Passiva"
             st.session_state.form_dati_salvati = False
+            st.session_state.form_dati_temp = {}
             st.rerun()
 
 elif st.session_state.pagina == "form":
     tipo = st.session_state.tipo
+    st.image("logo1.png", use_column_width=False)
     st.header(f"📄 **Nuova Fattura {tipo}**")
     
-    col1, col2 = st.columns(2)
+    # Form principale
+    col1, col2 = st.columns(2, gap="medium")
+    
     with col1:
         data = st.date_input("**📅 Data**", value=datetime.now())
+        anno_selezionato = st.session_state.anno_selezionato
         numero = st.text_input("**🔢 Numero Protocollo**", 
                               value=f"{anno_selezionato}/{len(st.session_state.dati_fatture[tipo])+1}")
         nome = st.text_input("**👤 Cliente/Fornitore**", value="Cliente" if tipo == "Attiva" else "Fornitore")
@@ -240,6 +307,7 @@ elif st.session_state.pagina == "form":
         pagamento = st.selectbox("**💳 Modalità Pagamento**", 
                                ["Bonifico 30gg", "Bonifico 60gg", "Anticipo", "Contanti", "Ri.Ba.", "Bonifico immediato"])
     
+    # Totali
     iva, totale = calcola_totali(imponibile, iva_perc)
     col_tot1, col_tot2 = st.columns(2)
     col_tot1.metric("**IVA**", f"€ {iva:.2f}")
@@ -247,9 +315,10 @@ elif st.session_state.pagina == "form":
     
     note = st.text_area("**📝 Note**", height=100)
     
+    # Salva dati temporanei
     st.session_state.form_dati_temp = {
         "data": data.strftime("%d/%m/%Y"),
-        "numero": numero,
+        "numero": numero.strip(),
         "cliente_fornitore": nome.strip(),
         "piva": piva.strip(),
         "imponibile": float(imponibile),
@@ -260,9 +329,11 @@ elif st.session_state.pagina == "form":
         "note": note.strip()
     }
     
+    # Pulsanti azione con validazione
     col1, col2, col3, col4 = st.columns(4)
+    
     with col1:
-        if st.button("💾 **SALVA**", type="primary"):
+        if st.button("💾 **SALVA**", type="primary", use_container_width=True):
             errori = valida_fattura(st.session_state.form_dati_temp)
             if errori:
                 for errore in errori:
@@ -274,159 +345,236 @@ elif st.session_state.pagina == "form":
                 salva_dati(st.session_state.dati_fatture)
                 st.session_state.form_dati_salvati = True
                 st.session_state.pagina = "storico"
-                st.success("✅ Fattura salvata!")
+                st.success("✅ **Fattura salvata con successo!**")
                 st.balloons()
                 st.rerun()
-    with col2:
-        if st.button("⬅️ **Home**"):
-            st.session_state.pagina = "home"
-            st.rerun()
-    with col3:
-        if st.button("👁️ **ANTEPRIMA**"):
-            st.session_state.show_pdf_preview = True
-            st.rerun()
-    with col4:
-        xml_data = fattura_to_xml(st.session_state.form_dati_temp, tipo)
-        st.download_button(
-            label="📄 **XML**",
-            data=xml_data,
-            file_name=f"{st.session_state.form_dati_temp['numero']}_{tipo}.xml",
-            mime="application/xml"
-        )
     
+    with col2:
+        if st.button("⬅️ **Home**", use_container_width=True):
+            if st.session_state.form_dati_salvati or st.button("Confermi uscita senza salvare?"):
+                st.session_state.pagina = "home"
+                st.session_state.form_dati_salvati = False
+                st.rerun()
+            else:
+                st.error("⚠️ **SALVA prima** i dati inseriti!")
+    
+    with col3:
+        if st.button("👁️ **ANTEPRIMA PDF**", use_container_width=True):
+            st.session_state.show_pdf_preview = True
+    
+    with col4:
+        if st.button("📄 **XML**", use_container_width=True):
+            xml_data = fattura_to_xml(st.session_state.form_dati_temp, tipo)
+            st.download_button(
+                label="💾 **Scarica XML**",
+                data=xml_data.encode('utf-8'),
+                file_name=f"{st.session_state.form_dati_temp['numero']}_{tipo}.xml",
+                mime="application/xml",
+                use_container_width=True
+            )
+    
+    # Indicatore stato
+    stato = "🟢 **SALVATO**" if st.session_state.form_dati_salvati else "🟡 **NON SALVATO**"
+    st.metric("📝 **Stato form**", stato)
+    
+    # Anteprima PDF
     if st.session_state.get('show_pdf_preview', False):
         st.markdown("---")
         st.subheader("👀 **ANTEPRIMA FATTURA**")
         html_preview = crea_pdf_fattura_semplice(st.session_state.form_dati_temp, tipo)
         st.markdown(html_preview, unsafe_allow_html=True)
         
-        if st.button("✕ **Chiudi Anteprima**", type="secondary"):
+        if st.button("✕ **Chiudi Anteprima**", type="secondary", use_container_width=True):
             st.session_state.show_pdf_preview = False
             st.rerun()
 
 elif st.session_state.pagina == "storico":
-    st.image("banner1.png", use_column_width=False)
+    st.image("logo1.png", use_column_width=False)
     st.header("📋 **Archivio Fatture**")
     
+    # Statistiche
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Fatture Attive", len(st.session_state.dati_fatture["Attiva"]))
-    col2.metric("Totale Attivo", f"€ {sum(f.get('totale', 0) for f in st.session_state.dati_fatture['Attiva']):.2f}")
-    col3.metric("Fatture Passive", len(st.session_state.dati_fatture["Passiva"]))
-    col4.metric("Totale Passivo", f"€ {sum(f.get('totale', 0) for f in st.session_state.dati_fatture['Passiva']):.2f}")
+    col1.metric("📤 Fatture Attive", len(st.session_state.dati_fatture["Attiva"]))
+    col2.metric("💶 Totale Attivo", f"€ {sum(f.get('totale', 0) for f in st.session_state.dati_fatture['Attiva']):.2f}")
+    col3.metric("📥 Fatture Passive", len(st.session_state.dati_fatture["Passiva"]))
+    col4.metric("💸 Totale Passivo", f"€ {sum(f.get('totale', 0) for f in st.session_state.dati_fatture['Passiva']):.2f}")
     
-    tab1, tab2 = st.tabs(["📤 Attiva", "📥 Passiva"])
+    # Tabs
+    tab1, tab2 = st.tabs(["📤 **Fatturazione Attiva**", "📥 **Fatturazione Passiva**"])
     
     with tab1:
         if st.session_state.dati_fatture["Attiva"]:
-            df = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
-            df['data'] = df['data'].apply(formatta_data_df)
-            buffer_data, mime_type, file_ext = create_excel_buffer(df, "Fatture_Attive")
+            df_attive = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
+            df_attive['data'] = df_attive['data'].apply(formatta_data_df)
+            
+            # Bottoni esportazione
             col1, col2 = st.columns(2)
-            col1.download_button("⬇️ Excel", data=buffer_data, file_name=f"Attive_{datetime.now().strftime('%Y%m%d')}{file_ext}", mime=mime_type)
-            xls_data = df.to_xls(index=False, sep=';', encoding='utf-8').encode('utf-8')
-            col2.download_button("📄 CSV", data=csv_data, file_name=f"Attive_{datetime.now().strftime('%Y%m%d')}.csv", mime='text/csv')
-            st.dataframe(df, use_container_width=True, hide_index=True)
+            with col1:
+                buffer_data, mime_type, file_ext = create_excel_buffer(df_attive, "Fatture_Attive")
+                st.download_button(
+                    label="⬇️ **Excel Attive**",
+                    data=buffer_data,
+                    file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d_%H%M')}{file_ext}",
+                    mime=mime_type,
+                    use_container_width=True
+                )
+            with col2:
+                csv_data = df_attive.to_csv(index=False, sep=';', encoding='utf-8').encode('utf-8')
+                st.download_button(
+                    label="📄 **CSV Attive**",
+                    data=csv_data,
+                    file_name=f"Fatture_Attive_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                    mime='text/csv',
+                    use_container_width=True
+                )
+            
+            st.dataframe(df_attive, use_container_width=True, hide_index=True)
         else:
-            st.info("Nessuna fattura attiva")
+            st.info("👆 **Nessuna fattura attiva**. Crea la prima dalla Home!")
     
     with tab2:
         if st.session_state.dati_fatture["Passiva"]:
-            df = pd.DataFrame(st.session_state.dati_fatture["Passiva"])
-            df['data'] = df['data'].apply(formatta_data_df)
-            buffer_data, mime_type, file_ext = create_excel_buffer(df, "Fatture_Passive")
+            df_passive = pd.DataFrame(st.session_state.dati_fatture["Passiva"])
+            df_passive['data'] = df_passive['data'].apply(formatta_data_df)
+            
+            # Bottoni esportazione
             col1, col2 = st.columns(2)
-            col1.download_button("⬇️ Excel", data=buffer_data, file_name=f"Passive_{datetime.now().strftime('%Y%m%d')}{file_ext}", mime=mime_type)
-            xls_data = df.to_xls(index=False, sep=';', encoding='utf-8').encode('utf-8')
-            col2.download_button("📄 CSV", data=csv_data, file_name=f"Passive_{datetime.now().strftime('%Y%m%d')}.csv", mime='text/csv')
-            st.dataframe(df, use_container_width=True, hide_index=True)
+            with col1:
+                buffer_data, mime_type, file_ext = create_excel_buffer(df_passive, "Fatture_Passive")
+                st.download_button(
+                    label="⬇️ **Excel Passive**",
+                    data=buffer_data,
+                    file_name=f"Fatture_Passive_{datetime.now().strftime('%Y%m%d_%H%M')}{file_ext}",
+                    mime=mime_type,
+                    use_container_width=True
+                )
+            with col2:
+                csv_data = df_passive.to_csv(index=False, sep=';', encoding='utf-8').encode('utf-8')
+                st.download_button(
+                    label="📄 **CSV Passive**",
+                    data=csv_data,
+                    file_name=f"Fatture_Passive_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                    mime='text/csv',
+                    use_container_width=True
+                )
+            
+            st.dataframe(df_passive, use_container_width=True, hide_index=True)
         else:
-            st.info("Nessuna fattura passiva")
+            st.info("👆 **Nessuna fattura passiva**. Crea la prima dalla Home!")
     
-    if st.button("🏠 Home", use_container_width=True):
+    if st.button("🏠 **Torna alla Home**", type="secondary", use_container_width=True):
         st.session_state.pagina = "home"
         st.rerun()
 
 elif st.session_state.pagina == "anagrafiche":
-    st.image("banner1.png", use_column_width=False)
-    st.header("👥 **Anagrafiche**")
+    st.image("logo1.png", use_column_width=False)
+    st.header("👥 **Gestione Anagrafiche**")
     
-    tab1, tab2 = st.tabs(["➕ Cliente", "➕ Fornitore"])
+    # Tabs per nuovi inserimenti
+    tab1, tab2 = st.tabs(["➕ **Nuovo Cliente**", "➕ **Nuovo Fornitore**"])
     
     with tab1:
-        with st.form("cliente"):
+        st.markdown("### 📝 **Dati Cliente**")
+        with st.form("form_cliente"):
             col1, col2 = st.columns(2)
             with col1:
-                rag_sociale = st.text_input("Ragione Sociale")
-                piva = st.text_input("P.IVA")
+                rag_sociale = st.text_input("**Ragione Sociale**", placeholder="Mario Rossi Srl")
+                piva = st.text_input("**P.IVA**", placeholder="IT12345678901")
             with col2:
-                email = st.text_input("Email")
-                telefono = st.text_input("Telefono")
+                email = st.text_input("**Email**", placeholder="info@mariorossi.it")
+                telefono = st.text_input("**Telefono**", placeholder="06-1234567")
             
-            if st.form_submit_button("💾 Salva", type="primary"):
-                if rag_sociale and piva:
-                    if valida_piva(piva):
-                        cliente = {
-                            "ragione_sociale": rag_sociale.strip(),
-                            "piva": piva.strip(),
-                            "email": email.strip(),
-                            "telefono": telefono.strip(),
-                            "timestamp": datetime.now().isoformat()
-                        }
-                        st.session_state.anagrafiche["clienti"].append(cliente)
-                        salva_anagrafiche(st.session_state.anagrafiche)
-                        st.success("Cliente salvato!")
-                        st.rerun()
-                    else:
-                        st.error("P.IVA non valida")
+            col_submit, col_cancel = st.columns([3, 1])
+            with col_submit:
+                submitted = st.form_submit_button("💾 **SALVA CLIENTE**", type="primary")
+            with col_cancel:
+                if st.form_submit_button("❌ **ANNULLA**"):
+                    st.rerun()
+            
+            if submitted and rag_sociale and piva:
+                if valida_piva(piva):
+                    nuovo_cliente = {
+                        "ragione_sociale": rag_sociale.strip(),
+                        "piva": piva.strip(),
+                        "email": email.strip(),
+                        "telefono": telefono.strip(),
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    st.session_state.anagrafiche["clienti"].append(nuovo_cliente)
+                    salva_anagrafiche(st.session_state.anagrafiche)
+                    st.success("✅ **Cliente salvato con successo!**")
+                    st.balloons()
+                    st.rerun()
                 else:
-                    st.error("Compila tutti i campi")
+                    st.error("❌ **P.IVA non valida** (11 cifre numeriche)")
+            elif submitted:
+                st.error("❌ **Compila tutti i campi obbligatori**")
     
     with tab2:
-        with st.form("fornitore"):
+        st.markdown("### 📝 **Dati Fornitore**")
+        with st.form("form_fornitore"):
             col1, col2 = st.columns(2)
             with col1:
-                rag_sociale_f = st.text_input("Ragione Sociale")
-                piva_f = st.text_input("P.IVA")
+                rag_sociale_f = st.text_input("**Ragione Sociale**", placeholder="Fornitore XYZ")
+                piva_f = st.text_input("**P.IVA**", placeholder="IT98765432109")
             with col2:
-                email_f = st.text_input("Email")
-                telefono_f = st.text_input("Telefono")
+                email_f = st.text_input("**Email**", placeholder="ordini@xyz.it")
+                telefono_f = st.text_input("**Telefono**", placeholder="02-9876543")
             
-            if st.form_submit_button("💾 Salva", type="primary"):
-                if rag_sociale_f and piva_f:
-                    if valida_piva(piva_f):
-                        fornitore = {
-                            "ragione_sociale": rag_sociale_f.strip(),
-                            "piva": piva_f.strip(),
-                            "email": email_f.strip(),
-                            "telefono": telefono_f.strip(),
-                            "timestamp": datetime.now().isoformat()
-                        }
-                        st.session_state.anagrafiche["fornitori"].append(fornitore)
-                        salva_anagrafiche(st.session_state.anagrafiche)
-                        st.success("Fornitore salvato!")
-                        st.rerun()
-                    else:
-                        st.error("P.IVA non valida")
+            col_submit_f, col_cancel_f = st.columns([3, 1])
+            with col_submit_f:
+                submitted_f = st.form_submit_button("💾 **SALVA FORNITORE**", type="primary")
+            with col_cancel_f:
+                if st.form_submit_button("❌ **ANNULLA**"):
+                    st.rerun()
+            
+            if submitted_f and rag_sociale_f and piva_f:
+                if valida_piva(piva_f):
+                    nuovo_fornitore = {
+                        "ragione_sociale": rag_sociale_f.strip(),
+                        "piva": piva_f.strip(),
+                        "email": email_f.strip(),
+                        "telefono": telefono_f.strip(),
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    st.session_state.anagrafiche["fornitori"].append(nuovo_fornitore)
+                    salva_anagrafiche(st.session_state.anagrafiche)
+                    st.success("✅ **Fornitore salvato con successo!**")
+                    st.balloons()
+                    st.rerun()
                 else:
-                    st.error("Compila tutti i campi")
+                    st.error("❌ **P.IVA non valida** (11 cifre numeriche)")
+            elif submitted_f:
+                st.error("❌ **Compila tutti i campi obbligatori**")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("🏢 Clienti")
-        for c in st.session_state.anagrafiche["clienti"]:
-            st.write(f"**{c['ragione_sociale']}** - {c['piva']}")
+    # Elenco anagrafiche
+    st.markdown("---")
+    st.subheader("📋 **Elenco Anagrafiche Salvate**")
     
-    with col2:
-        st.subheader("🏭 Fornitori")
-        for f in st.session_state.anagrafiche["fornitori"]:
-            st.write(f"**{f['ragione_sociale']}** - {f['piva']}")
+    col_list1, col_list2 = st.columns(2)
     
-    if st.button("⬅️ Home", use_container_width=True):
+    with col_list1:
+        st.markdown("### 🏢 **CLIENTI**")
+        if st.session_state.anagrafiche["clienti"]:
+            for i, cliente in enumerate(st.session_state.anagrafiche["clienti"][:10]):
+                with st.expander(f"**{cliente['ragione_sociale']}** - {cliente['piva']}", expanded=False):
+                    st.write(f"📧 **{cliente.get('email', 'N/D')}**")
+                    st.write(f"📞 **{cliente.get('telefono', 'N/D')}**")
+                    st.caption(f"Aggiunto: {cliente['timestamp'][:10]}")
+        else:
+            st.info("👆 **Nessun cliente registrato**")
+    
+    with col_list2:
+        st.markdown("### 🏭 **FORNITORI**")
+        if st.session_state.anagrafiche["fornitori"]:
+            for i, fornitore in enumerate(st.session_state.anagrafiche["fornitori"][:10]):
+                with st.expander(f"**{fornitore['ragione_sociale']}** - {fornitore['piva']}", expanded=False):
+                    st.write(f"📧 **{fornitore.get('email', 'N/D')}**")
+                    st.write(f"📞 **{fornitore.get('telefono', 'N/D')}**")
+                    st.caption(f"Aggiunto: {fornitore['timestamp'][:10]}")
+        else:
+            st.info("👆 **Nessun fornitore registrato**")
+    
+    if st.button("⬅️ **Torna alla Home**", type="secondary", use_container_width=True):
         st.session_state.pagina = "home"
-
-        # === AGGIUNGI PRIMA DEL MAIN LOOP ===
-    if st.button("💾 Salva Anagrafica"):
-        st.session_state.anagrafica.to_csv("anagrafica.csv", index=False)
-        st.success("📁 Anagrafica salvata!")
-
         st.rerun()
