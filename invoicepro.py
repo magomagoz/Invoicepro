@@ -10,6 +10,18 @@ from xml.dom import minidom
 # =============================================================================
 # INIZIALIZZAZIONE SESSION STATE (SENZA LIBRERIE ESTERNE)
 # =============================================================================
+def formatta_data_df(data_str):
+    """Converte data per dataframe in dd/mm/yyyy"""
+    try:
+        if pd.isna(data_str):
+            return ""
+        if isinstance(data_str, str) and '/' in data_str:
+            return data_str
+        dt = pd.to_datetime(data_str)
+        return dt.strftime("%d/%m/%Y")
+    except:
+        return str(data_str)
+        
 def init_session_state():
     defaults = {
         'dati_fatture': {"Attiva": [], "Passiva": []},
@@ -82,6 +94,10 @@ def calcola_totali(imponibile, iva_perc):
 def valida_piva(piva):
     piva = piva.replace("IT", "").replace(" ", "").strip().upper()
     return len(piva) == 11 and piva.isdigit()
+
+def valida_cf(cf):
+    cf = cf.replace("IT", "").replace(" ", "").strip().upper()
+    return len(cf) == 16 and cf.isalnum()
 
 def valida_fattura(dati):
     errori = []
