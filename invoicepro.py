@@ -216,7 +216,9 @@ elif st.session_state.pagina == "form":
     col1, col2 = st.columns(2, gap="medium")
     
     with col1:
-        data = st.date_input("**📅 Data**", value=datetime.now())
+        data = st.date_input("**📅 Data**", 
+                            value=datetime.now(),
+                            format=""DD/MM/YYYY)
         anno_selezionato = st.session_state.anno_selezionato
         numero = st.text_input("**🔢 Numero Protocollo**", 
                               value=f"{anno_selezionato}/{len(st.session_state.dati_fatture[tipo])+1}")
