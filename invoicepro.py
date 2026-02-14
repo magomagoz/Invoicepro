@@ -366,9 +366,9 @@ elif st.session_state.pagina == "storico":
                 use_container_width=True
             )
             
-        st.dataframe(df_attive, use_container_width=True, hide_index=True)
-    else:
-        st.info("👆 **Nessuna fattura attiva**. Crea la prima dalla Home!")
+            st.dataframe(df_attive, use_container_width=True, hide_index=True)
+        else:
+            st.info("👆 **Nessuna fattura attiva**. Crea la prima dalla Home!")
     
     with tab2:
         if st.session_state.dati_fatture["Passiva"]:
