@@ -7,17 +7,6 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import base64
 
-# Carica anagrafica (CSV o session_state)
-if 'anagrafica' not in st.session_state:
-    # Simula anagrafica, sostituisci con pd.read_csv("clienti.csv")
-    st.session_state.anagrafica = pd.DataFrame({
-        'nome': ['Mario Rossi', 'Luca Bianchi', 'Anna Verdi'],
-        'piva': ['IT12345678901', 'IT98765432109', 'IT55566677788'],
-        'indirizzo': ['Via Roma 1', 'Via Milano 2', 'Via Napoli 3']
-    })
-
-anagrafica = st.session_state.anagrafica.copy()
-
 # =============================================================================
 # FUNZIONI UTILITY
 # =============================================================================
