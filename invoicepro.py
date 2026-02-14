@@ -124,23 +124,36 @@ def formatta_data_df(data_str):
     except:
         return str(data_str)
 
+import base64
+
 def crea_pdf_fattura_semplice(dati_fattura, tipo="Attiva"):
-    # Sostituisci con l'URL raw del tuo file su GitHub (es. https://raw.githubusercontent.com/tuo-username/repo/main/logo_pdf.png)
-    url_logo = "https://raw.githubusercontent.com/tuo-username/repo/main/logo_pdf.png"
+    # Carica e converte logo in base64 (una tantum)
+    try:
+        with open("logo_pdf.png", "rb") as f:
+            logo_base64 = base64.b64encode(f.read()).decode('utf-8')
+        logo_data_uri = f"image/png;base64,{logo_base64}"
+    except FileNotFoundError:
+        logo_data_uri = ""  # No logo se file mancante
+    
+    # Formatta data DD/MM/YYYY
+    from datetime import datetime
+    data_obj = datetime.strptime(dati_fattura["data"], "%Y/%m/%d")
+    data_formattata = data_obj.strftime("%d/%m/%Y")
     
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 2px solid #1e3a8a;">
         <table style="width: 100%; border-collapse: collapse;">
             <tr>
-                <td style="width: 150px; vertical-align: top;">
-                    <img src="{url_logo}" alt="Logo" style="max-width: 150px; max-height: 100px; width: auto; height: auto;">
+                <td style="width: 180px; vertical-align: top;">
+                    {'<img src="{logo_data_uri}" alt="Logo" style="width: 180px; height: auto; max-height: 120px;">' if logo_data_uri else ''}
                 </td>
                 <td style="vertical-align: top; text-align: right;">
                     <h1 style="color: #1e3a8a; margin: 0;">FATTURA {tipo}</h1>
-                    <h3 style="color: #1e3a8a; margin: 5px 0;">Data: {dati_fattura["data"]} | Nº: {dati_fattura["numero"]}</h3>
+                    <h3 style="color: #1e3a8a; margin: 5px 0;">Data: {data_formattata} | Nº: {dati_fattura["numero"]}</h3>
                 </td>
             </tr>
         </table>
+        <!-- resto del contenuto invariato -->
         <h3>{'CLIENTE' if tipo == 'Attiva' else 'FORNITORE'}</h3>
         <p><strong>{dati_fattura["cliente_fornitore"]}</strong></p>
         <p>P.IVA: {dati_fattura["piva"]}</p>
@@ -153,6 +166,7 @@ def crea_pdf_fattura_semplice(dati_fattura, tipo="Attiva"):
     </div>
     """
     return html
+
 
 def fattura_to_xml(fattura, tipo):
     fattura_xml = ET.Element("Fattura", tipo=tipo)
