@@ -228,6 +228,7 @@ elif st.session_state.pagina == "form":
         iva_perc = st.number_input("**📊 Aliquota IVA (%)**", min_value=0.0, value=22.0, step=0.1)
         pagamento = st.selectbox("**💳 Modalità Pagamento**", 
                                ["Bonifico 30gg", "Bonifico 60gg", "Anticipo", "Contanti", "Ri.Ba.", "Bonifico immediato"])
+        scadenza = 
     
     # Totali
     iva, totale = calcola_totali(imponibile, iva_perc)
@@ -248,7 +249,8 @@ elif st.session_state.pagina == "form":
         "iva": float(iva),
         "totale": float(totale),
         "pagamento": pagamento,
-        "note": note.strip()
+        "note": note.strip(),
+        "scadenza": "
     }
     
     # Pulsanti azione con validazione
