@@ -211,6 +211,8 @@ st.session_state.anno_selezionato = st.sidebar.selectbox(
     index=anni.index(2026)
 )
 
+st.markdown("---")
+
 if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
     st.session_state.pagina = "home"
     st.rerun()
@@ -231,7 +233,7 @@ st.sidebar.info(f"**Anno selezionato: {st.session_state.anno_selezionato}**")
 # =============================================================================
 if st.session_state.pagina == "home":
     st.image("banner1.png", use_column_width=False, caption="Invoice Pro")
-    st.title("💼 **Fatturazione Aziendale Professionale** 💼")
+    st.title("💼 **Fatturazione Aziendale** 💼")
     st.markdown("---")
     
     col1, col2 = st.columns(2, gap="large")
