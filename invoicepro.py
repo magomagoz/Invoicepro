@@ -214,7 +214,7 @@ st.sidebar.info(f"**Anno selezionato: {st.session_state.anno_selezionato}**")
 # PAGINE PRINCIPALI
 # =============================================================================
 if st.session_state.pagina == "home":
-    st.image("logo1.png", use_column_width=False, caption="Invoice Pro")
+    st.image("banner1.png", use_column_width=False, caption="Invoice Pro")
     st.title("💼 **Fatturazione Aziendale Professionale** 💼")
     st.markdown("---")
     
@@ -242,7 +242,7 @@ if st.session_state.pagina == "home":
 
 elif st.session_state.pagina == "form":
     tipo = st.session_state.tipo
-    st.image("logo1.png", use_column_width=False)
+    st.image("banner1.png", use_column_width=False)
     st.header(f"📄 **Nuova Fattura {tipo}**")
     
     # Form principale
@@ -344,7 +344,7 @@ elif st.session_state.pagina == "form":
             st.rerun()
 
 elif st.session_state.pagina == "storico":
-    st.image("logo1.png", use_column_width=False)
+    st.image("banner1.png", use_column_width=False)
     st.header("📋 **Archivio Fatture**")
     
     # Statistiche
@@ -422,7 +422,7 @@ elif st.session_state.pagina == "storico":
         st.rerun()
 
 elif st.session_state.pagina == "anagrafiche":
-    st.image("logo1.png", use_column_width=False)
+    st.image("banner1.png", use_column_width=False)
     st.header("👥 **Gestione Anagrafiche**")
     
     # Tabs per nuovi inserimenti
