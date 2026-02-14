@@ -125,10 +125,22 @@ def formatta_data_df(data_str):
         return str(data_str)
 
 def crea_pdf_fattura_semplice(dati_fattura, tipo="Attiva"):
+    # Sostituisci con l'URL raw del tuo file su GitHub (es. https://raw.githubusercontent.com/tuo-username/repo/main/logo_pdf.png)
+    url_logo = "https://raw.githubusercontent.com/tuo-username/repo/main/logo_pdf.png"
+    
     html = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 2px solid #1e3a8a;">
-        <h1 style="color: #1e3a8a; text-align: center;">FATTURA {tipo}</h1>
-        <h3 style="color: #1e3a8a;">Data: {dati_fattura["data"]} | Nº: {dati_fattura["numero"]}</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="width: 150px; vertical-align: top;">
+                    <img src="{url_logo}" alt="Logo" style="max-width: 150px; max-height: 100px; width: auto; height: auto;">
+                </td>
+                <td style="vertical-align: top; text-align: right;">
+                    <h1 style="color: #1e3a8a; margin: 0;">FATTURA {tipo}</h1>
+                    <h3 style="color: #1e3a8a; margin: 5px 0;">Data: {dati_fattura["data"]} | Nº: {dati_fattura["numero"]}</h3>
+                </td>
+            </tr>
+        </table>
         <h3>{'CLIENTE' if tipo == 'Attiva' else 'FORNITORE'}</h3>
         <p><strong>{dati_fattura["cliente_fornitore"]}</strong></p>
         <p>P.IVA: {dati_fattura["piva"]}</p>
