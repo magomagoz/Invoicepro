@@ -220,7 +220,7 @@ elif st.session_state.pagina == "form":
         anno_selezionato = st.session_state.anno_selezionato
         numero = st.text_input("**🔢 Numero Protocollo**", 
                               value=f"{anno_selezionato}/{len(st.session_state.dati_fatture[tipo])+1}")
-        nome = st.text_input("**👤 Cliente/Fornitore**", value="Cliente" if tipo == "Attiva" else "Fornitore")
+        nome = st.text_input("**👤 Cliente/Fornitore**", value="" if tipo == "Attiva" else "Fornitore")
         piva = st.text_input("**🆔 P.IVA / CF**", value="")
     
     with col2:
@@ -228,7 +228,11 @@ elif st.session_state.pagina == "form":
         iva_perc = st.number_input("**📊 Aliquota IVA (%)**", min_value=0.0, value=22.0, step=0.1)
         pagamento = st.selectbox("**💳 Modalità Pagamento**", 
                                ["Bonifico 30gg", "Bonifico 60gg", "Anticipo", "Contanti", "Ri.Ba.", "Bonifico immediato"])
-        scadenza = 
+        # ← CAMPO SCADENZA AGGIUNTO
+        scadenza = st.date_input("**⏰ Data Scadenza**", 
+                               value=datetime.now() + pd.Timedelta(days=30),  # 30gg da oggi
+                               min_value=datetime.now(), 
+                               format="DD/MM/YYYY")
     
     # Totali
     iva, totale = calcola_totali(imponibile, iva_perc)
@@ -250,7 +254,7 @@ elif st.session_state.pagina == "form":
         "totale": float(totale),
         "pagamento": pagamento,
         "note": note.strip(),
-        "scadenza": "
+        "scadenza": scadenza.strftime("%d/%m/%Y")  # ← AGGIUNTO
     }
     
     # Pulsanti azione con validazione
@@ -297,17 +301,6 @@ elif st.session_state.pagina == "form":
     stato = "🟢 **SALVATO**" if st.session_state.form_dati_salvati else "🟡 **NON SALVATO**"
     st.metric("📝 **Stato form**", stato)
     
-    # Anteprima PDF
-    if st.session_state.get('show_pdf_preview', False):
-        st.markdown("---")
-        st.subheader("👀 **ANTEPRIMA FATTURA**")
-        html_preview = crea_pdf_fattura_semplice(st.session_state.form_dati_temp, tipo)
-        st.markdown(html_preview, unsafe_allow_html=True)
-        
-        if st.button("✕ **Chiudi Anteprima**", type="secondary", use_container_width=True):
-            st.session_state.show_pdf_preview = False
-            st.rerun()
-
 elif st.session_state.pagina == "storico":
     st.image("banner1.png", use_column_width=False)
     st.header("📋 **Archivio Fatture**")
