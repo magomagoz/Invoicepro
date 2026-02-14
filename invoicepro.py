@@ -8,6 +8,14 @@ from xml.dom import minidom
 import base64
 
 # =============================================================================
+# CONFIGURAZIONE APP
+# =============================================================================
+
+st.set_page_config(page_title="Invoice Pro", page_icon="💼", layout="wide")
+
+init_session_state()
+
+# =============================================================================
 # FUNZIONI UTILITY
 # =============================================================================
 
@@ -208,14 +216,6 @@ def create_excel_buffer(df, sheet_name):
         csv_buffer = io.StringIO()
         df.to_csv(csv_buffer, index=False, sep=';', encoding='utf-8')
         return csv_buffer.getvalue().encode('utf-8'), "text/csv", ".csv"
-
-# =============================================================================
-# CONFIGURAZIONE APP
-# =============================================================================
-
-st.set_page_config(page_title="Invoice Pro", page_icon="💼", layout="wide")
-
-init_session_state()
 
 # =============================================================================
 # SIDEBAR
