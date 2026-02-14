@@ -177,23 +177,6 @@ def fattura_to_xml(fattura, tipo):
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ")
 
-import io
-import pandas as pd
-
-def create_excel_buffer(df, nome_foglio):
-    buffer = io.BytesIO()
-    
-    # Usa xlsxwriter invece di openpyxl per i buffer (più stabile)
-    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name=nome_foglio, index=False)
-        workbook = writer.book
-        worksheet = writer.sheets[nome_foglio]
-        # Formattazione opzionale
-        worksheet.autofit()
-    
-    buffer.seek(0)
-    return buffer.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'xlsx'
-
 # =============================================================================
 # SIDEBAR
 # =============================================================================
@@ -374,30 +357,18 @@ elif st.session_state.pagina == "storico":
             df_attive = pd.DataFrame(st.session_state.dati_fatture["Attiva"])
             df_attive['data'] = df_attive['data'].apply(formatta_data_df)
             
-            # Bottoni esportazione
-            col1, col2 = st.columns(2)
-            with col1:
-                buffer_data, mime_type, file_ext = create_excel_buffer(df_attive, "Fatture_Attive")
-                st.download_button(
-                    label="⬇️ **Excel Attive**",
-                    data=buffer_data,
-                    file_name=f"Fatture_Attive_{datetime.now().strftime('%d%m%Y_%H%M')}{file_ext}",
-                    mime=mime_type,
-                    use_container_width=True
-                )
-            with col2:
-                csv_data = df_attive.to_csv(index=False, sep=';', encoding='utf-8').encode('utf-8')
-                st.download_button(
-                    label="📄 **CSV Attive**",
-                    data=csv_data,
-                    file_name=f"Fatture_Attive_{datetime.now().strftime('%d%m%Y_%H%M')}.csv",
-                    mime='text/csv',
-                    use_container_width=True
-                )
+            csv_data = df_attive.to_csv(index=False, sep=';', encoding='utf-8').encode('utf-8')
+            st.download_button(
+                label="📄 **CSV Attive**",
+                data=csv_data,
+                file_name=f"Fatture_Attive_{datetime.now().strftime('%d%m%Y_%H%M')}.csv",
+                mime='text/csv',
+                use_container_width=True
+            )
             
-            st.dataframe(df_attive, use_container_width=True, hide_index=True)
-        else:
-            st.info("👆 **Nessuna fattura attiva**. Crea la prima dalla Home!")
+        st.dataframe(df_attive, use_container_width=True, hide_index=True)
+    else:
+        st.info("👆 **Nessuna fattura attiva**. Crea la prima dalla Home!")
     
     with tab2:
         if st.session_state.dati_fatture["Passiva"]:
