@@ -16,6 +16,7 @@ st.set_page_config(
     page_title="Invoice Pro",
     page_icon="💼",
     layout="wide"
+)
 
 # =============================================================================
 # FUNZIONI UTILITY
