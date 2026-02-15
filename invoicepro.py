@@ -364,7 +364,7 @@ elif st.session_state.pagina == "storico":
                 label="Cancella Storico Attive e Passive", 
                 key="cancella_attive",
                 use_container_width=True, 
-                type="secondary"
+                type="primary"
             ):
                 st.session_state.confirm_delete_attive = True
             
@@ -373,7 +373,7 @@ elif st.session_state.pagina == "storico":
                 with col1:
                     st.error("⚠️ CONFERMI cancellazione TUTTE le fatture attive e passive?")
                 with col2:
-                    if st.button("SI, CANCELLA", key="si_attive", type="primary"):
+                    if st.button("SI, CANCELLA TUTTO", key="si_attive", type="primary"):
                         st.session_state.dati_fatture["Attiva"] = []
                         if os.path.exists("fatture.json"):
                             os.remove("fatture.json")
@@ -405,31 +405,31 @@ elif st.session_state.pagina == "storico":
 
             if st.button(
                 label="Cancella Storico Attive e Passive", 
-                key="cancella_attive",
+                key="cancella_passive",
                 use_container_width=True, 
-                type="secondary"
+                type="primary"
             ):
-                st.session_state.confirm_delete_attive = True
+                st.session_state.confirm_delete_passive = True
             
-            if st.session_state.get("confirm_delete_attive", False):
+            if st.session_state.get("confirm_delete_passive", False):
                 col1, col2 = st.columns([3,1])
                 with col1:
                     st.error("⚠️ CONFERMI cancellazione TUTTE le fatture attive e passive?")
                 with col2:
-                    if st.button("SI, CANCELLA", key="si_attive", type="primary"):
-                        st.session_state.dati_fatture["Attiva"] = []
+                    if st.button("SI, CANCELLA TUTTO", key="si_passive", type="primary"):
+                        st.session_state.dati_fatture["Passiva"] = []
                         if os.path.exists("fatture.json"):
                             os.remove("fatture.json")
-                        st.session_state.confirm_delete_attive = False
-                        st.success("✅ Storico attive cancellato!")
+                        st.session_state.confirm_delete_passive = False
+                        st.success("✅ Storico passive cancellato!")
                         st.rerun()
-                    if st.button("ANNULLA", key="no_attive"):
-                        st.session_state.confirm_delete_attive = False
+                    if st.button("ANNULLA", key="no_passive"):
+                        st.session_state.confirm_delete_passive = False
                         st.rerun()
 
-            st.dataframe(df_attive, use_container_width=True, hide_index=True)
+            st.dataframe(df_passive, use_container_width=True, hide_index=True)
         else:
-            st.info("👆 **Nessuna fattura attiva**. Crea la prima dalla Home!")
+            st.info("👆 **Nessuna fattura passiva**. Crea la prima dalla Home!")
     
     if st.button("🏠 **Torna alla Home**", type="secondary", use_container_width=True):
         st.session_state.pagina = "home"
