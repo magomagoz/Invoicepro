@@ -270,7 +270,7 @@ elif st.session_state.pagina == "form":
         "totale": float(totale),
         "pagamento": pagamento,
         "note": note.strip(),
-        "scadenza": scadenza.strftime("%d/%m/%Y")  # ← AGGIUNTO
+        "scadenza": scadenza.strftime("%d/%m/%Y"),  # ← AGGIUNTO
         'analisi': {}  # ← AGGIUNGI QUESTA RIGA
     }
 
