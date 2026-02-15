@@ -187,7 +187,7 @@ if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
 
 st.sidebar.markdown("---")
 
-if st.sidebar.button("📈 **ANALISI RICAVI/COSTI**", use_container_width=True, type="primary"):
+if st.sidebar.button("📈 **ANALISI RICAVI/COSTI**", use_container_width=True, type="secondary"):
     st.session_state.pagina = "analisi"
     st.rerun()
 
