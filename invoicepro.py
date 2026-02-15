@@ -211,7 +211,7 @@ if st.sidebar.button("📈 **ANALISI RICAVI/COSTI**", use_container_width=True, 
 # =============================================================================
 if st.session_state.pagina == "home":
     st.image("banner1.png", use_column_width=False, caption="Realizzato dal Mago")
-    st.title("💼 **Fatturazione Aziendale** 💼")
+    #st.title("💼 **Fatturazione Aziendale** 💼")
     st.markdown("---")
     
     col1, col2 = st.columns(2, gap="large")
