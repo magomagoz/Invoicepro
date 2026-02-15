@@ -407,10 +407,8 @@ elif st.session_state.pagina == "storico":
             )
 
             if st.button(
-                label="Cancella Storico Attive e Passive", 
-                key="cancella_attive",
-                use_container_width=True, 
-                type="secondary"
+                label="Cancella Storico Attive e Passive",
+                key="delete_history"  # Add unique key if needed
             ):
                 st.session_state.confirm_delete_attive = True
             
