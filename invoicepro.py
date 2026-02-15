@@ -11,7 +11,7 @@ st.markdown("""
 <style>
 /* METRIC PIÙ PICCOLE */
 [data-testid="stMetricLabel"] {
-    font-size: 14px !important;
+    font-size: 16px !important;
     font-weight: 600 !important;
 }
 [data-testid="stMetricValue"] {
@@ -19,7 +19,7 @@ st.markdown("""
     font-weight: 700 !important;
 }
 [data-testid="stMetricDelta"] {
-    font-size: 12px !important;
+    font-size: 14px !important;
 }
 </style>
 """, unsafe_allow_html=True)
