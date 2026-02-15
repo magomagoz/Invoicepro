@@ -178,7 +178,7 @@ def fattura_to_xml(fattura, tipo):
 # =============================================================================
 # SIDEBAR
 # =============================================================================
-st.sidebar.title("📊 **CONTROL PANEL**")
+st.sidebar.title("📊 **CONFIGURAZIONE**")
 
 st.sidebar.info(f"**Anno selezionato: {st.session_state.anno_selezionato}**")
 
