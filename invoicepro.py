@@ -212,7 +212,7 @@ st.sidebar.markdown("---")
 # PAGINE PRINCIPALI (SENZA SPAZI VUOTI)
 # =============================================================================
 if st.session_state.pagina == "home":
-    st.image("banner1.png", use_column_width=False, caption="Realizzato dal Mago")
+    st.image("banner1.png", use_column_width=False, caption="Realizzato dal Mago con Perplexity AI")
     #st.title("💼 **Fatturazione Aziendale** 💼")
     st.markdown("---")
     
