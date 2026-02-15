@@ -185,6 +185,13 @@ if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
 
 st.sidebar.markdown("---")
 st.sidebar.info(f"**Anno selezionato: {st.session_state.anno_selezionato}**")
+
+# =============================================================================
+# PAGINE PRINCIPALI (SENZA SPAZI VUOTI)
+# =============================================================================
+st.markdown("#")  # Forza reset layout
+st.markdown("---")  # Pulisce eventuali spazi
+
 if st.session_state.pagina == "home":
     st.image("banner1.png", use_column_width=False, caption="Invoice Pro")
     st.title("💼 **Fatturazione Aziendale** 💼")
