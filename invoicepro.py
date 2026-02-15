@@ -432,7 +432,14 @@ elif st.session_state.pagina == "analisi":
     col2.metric("💸 **COSTI TOTALI**", f"€ {totali_passive:,.2f}")
     col3.metric("📊 **GUADAGNO**", f"€ {totali_attive - totali_passive:,.2f}", 
                 delta=f"{((totali_attive/totali_passive)-1)*100:.1f}%" if totali_passive > 0 else "∞")
-    col4.metric("📅 **OGGI**", datetime.now().strftime("%d/%m/%Y"))
+    mesi_it = {
+    1: "Gennaio", 2: "Febbraio", 3: "Marzo", 4: "Aprile", 5: "Maggio", 6: "Giugno",
+    7: "Luglio", 8: "Agosto", 9: "Settembre", 10: "Ottobre", 11: "Novembre", 12: "Dicembre"
+    }
+    mese_nome = mesi_it[datetime.now().month]
+    col4.metric("📅 **MESE CORRENTE**", f"{mese_nome} {datetime.now().year}")
+
+    #col4.metric("📅 **OGGI**", datetime.now().strftime("%d/%m/%Y"))
     
     st.markdown("---")
     
@@ -465,7 +472,7 @@ elif st.session_state.pagina == "analisi":
     col_scad1, col_scad2 = st.columns(2)
     
     with col_scad1:
-        st.markdown("### 🚨 **SCADUTE (DA PAGARE/INCASSARE)**")
+        st.markdown("### 🚨 **SCADUTE**")
         if attive_scadute:
             st.error(f"**{len(attive_scadute)} fatture attive scadute**")
             for f in attive_scadute[:5]:  # Prime 5
@@ -483,7 +490,7 @@ elif st.session_state.pagina == "analisi":
             st.success("✅ Nessuna passiva scaduta")
     
     with col_scad2:
-        st.markdown("### ✅ **IN REGOLA**")
+        st.markdown("### ✅ **PAGATE**")
         st.info(f"**{len(attive_ok)} attive da incassare**")
         st.info(f"**{len(passive_ok)} passive da pagare**")
     
