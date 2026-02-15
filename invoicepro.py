@@ -210,7 +210,7 @@ if st.sidebar.button("📈 **ANALISI RICAVI/COSTI**", use_container_width=True, 
 # PAGINE PRINCIPALI (SENZA SPAZI VUOTI)
 # =============================================================================
 if st.session_state.pagina == "home":
-    st.image("banner1.png", use_column_width=False, caption="Invoice Pro")
+    st.image("banner1.png", use_column_width=False, caption="Realizzato dal Mago")
     st.title("💼 **Fatturazione Aziendale** 💼")
     st.markdown("---")
     
