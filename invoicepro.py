@@ -221,7 +221,7 @@ if st.session_state.pagina == "home":
     with col1:
         st.markdown("### 🟢 **FATTURE ATTIVE**")
         st.markdown("*Fatture emesse ai clienti*")
-        if st.button("**➕ INIZIA NUOVA**", key="attiva_go", use_container_width=True, type="secondary"):
+        if st.button("**➕ NUOVA FATTURA ATTIVA**", key="attiva_go", use_container_width=True, type="secondary"):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Attiva"
             st.session_state.form_dati_salvati = False
@@ -231,7 +231,7 @@ if st.session_state.pagina == "home":
     with col2:
         st.markdown("### 🔵 **FATTURE PASSIVE**")
         st.markdown("*Fatture ricevute dai fornitori*")
-        if st.button("**➕ INIZIA NUOVA**", key="passiva_go", use_container_width=True, type="secondary"):
+        if st.button("**➕ NUOVA FATTURA PASSIVA**", key="passiva_go", use_container_width=True, type="secondary"):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Passiva"
             st.session_state.form_dati_salvati = False
