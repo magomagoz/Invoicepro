@@ -169,6 +169,8 @@ st.session_state.anno_selezionato = st.sidebar.selectbox(
     index=anni.index(2026)
 )
 
+st.sidebar.info(f"**Anno selezionato: {st.session_state.anno_selezionato}**")
+
 st.markdown("---")
 
 if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
@@ -184,7 +186,10 @@ if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
     st.rerun()
 
 st.sidebar.markdown("---")
-st.sidebar.info(f"**Anno selezionato: {st.session_state.anno_selezionato}**")
+
+if st.sidebar.button("📈 **ANALISI RICAVI/COSTI**", use_container_width=True, type="primary"):
+    st.session_state.pagina = "analisi"
+    st.rerun()
 
 # =============================================================================
 # PAGINE PRINCIPALI (SENZA SPAZI VUOTI)
@@ -266,8 +271,9 @@ elif st.session_state.pagina == "form":
         "pagamento": pagamento,
         "note": note.strip(),
         "scadenza": scadenza.strftime("%d/%m/%Y")  # ← AGGIUNTO
+        'analisi': {}  # ← AGGIUNGI QUESTA RIGA
     }
-    
+
     # Pulsanti azione con validazione
     col1, col2, col3, col4 = st.columns(4)
     
@@ -414,6 +420,101 @@ elif st.session_state.pagina == "storico":
             st.info("👆 **Nessuna fattura passiva**. Crea la prima dalla Home!")
     
     if st.button("🏠 **Torna alla Home**", type="secondary", use_container_width=True):
+        st.session_state.pagina = "home"
+        st.rerun()
+
+elif st.session_state.pagina == "analisi":
+    st.image("banner1.png", use_column_width=True)
+    st.header("📈 **Analisi Ricavi, Costi e Scadenze**")
+    
+    # STATISTICHE GENERALI
+    col1, col2, col3, col4 = st.columns(4)
+    totali_attive = sum(f.get('totale', 0) for f in st.session_state.dati_fatture["Attiva"])
+    totali_passive = sum(f.get('totale', 0) for f in st.session_state.dati_fatture["Passiva"])
+    
+    col1.metric("💰 **RICAVI TOTALI**", f"€ {totali_attive:,.2f}")
+    col2.metric("💸 **COSTI TOTALI**", f"€ {totali_passive:,.2f}")
+    col3.metric("📊 **UTILITÀ**", f"€ {totali_attive - totali_passive:,.2f}", 
+                delta=f"{((totali_attive/totali_passive)-1)*100:.1f}%" if totali_passive > 0 else "∞")
+    col4.metric("📅 **OGGI**", datetime.now().strftime("%d/%m/%Y"))
+    
+    st.markdown("---")
+    
+    # ANALISI SCADENZE
+    oggi = datetime.now().date()
+    
+    # Fatture ATTIVE da incassare
+    attive_scadute = []
+    attive_ok = []
+    for f in st.session_state.dati_fatture["Attiva"]:
+        if 'scadenza' in f:
+            scadenza = datetime.strptime(f['scadenza'], "%d/%m/%Y").date()
+            if scadenza < oggi:
+                attive_scadute.append(f)
+            else:
+                attive_ok.append(f)
+    
+    # Fatture PASSIVE da pagare  
+    passive_scadute = []
+    passive_ok = []
+    for f in st.session_state.dati_fatture["Passiva"]:
+        if 'scadenza' in f:
+            scadenza = datetime.strptime(f['scadenza'], "%d/%m/%Y").date()
+            if scadenza < oggi:
+                passive_scadute.append(f)
+            else:
+                passive_ok.append(f)
+    
+    # VISUALIZZAZIONE SCADENZE
+    col_scad1, col_scad2 = st.columns(2)
+    
+    with col_scad1:
+        st.markdown("### 🚨 **SCADUTE (DA PAGARE/INCASSARE)**")
+        if attive_scadute:
+            st.error(f"**{len(attive_scadute)} fatture attive scadute**")
+            for f in attive_scadute[:5]:  # Prime 5
+                giorni = (oggi - datetime.strptime(f['scadenza'], "%d/%m/%Y").date()).days
+                st.warning(f"• {f['numero']} - €{f['totale']:.2f} ({giorni}gg)")
+        else:
+            st.success("✅ Nessuna attiva scaduta")
+            
+        if passive_scadute:
+            st.error(f"**{len(passive_scadute)} fatture passive scadute**")
+            for f in passive_scadute[:5]:
+                giorni = (oggi - datetime.strptime(f['scadenza'], "%d/%m/%Y").date()).days
+                st.warning(f"• {f['numero']} - €{f['totale']:.2f} ({giorni}gg)")
+        else:
+            st.success("✅ Nessuna passiva scaduta")
+    
+    with col_scad2:
+        st.markdown("### ✅ **IN REGOLA**")
+        st.info(f"**{len(attive_ok)} attive da incassare**")
+        st.info(f"**{len(passive_ok)} passive da pagare**")
+    
+    # TABELLA COMPLETA SCADENZE
+    if attive_scadute or passive_scadute:
+        st.markdown("---")
+        st.subheader("📋 **DETTAGLIO SCADENZE**")
+        
+        dati_scadenze = []
+        for f in attive_scadute + passive_scadute:
+            scadenza_date = datetime.strptime(f['scadenza'], "%d/%m/%Y").date()
+            giorni = (oggi - scadenza_date).days
+            dati_scadenze.append({
+                "Tipo": "ATTIVA ❌" if f in attive_scadute else "PASSIVA ❌",
+                "Numero": f['numero'],
+                "Cliente": f['cliente_fornitore'][:20] + "...",
+                "Importo": f"€{f['totale']:.2f}",
+                "Scadenza": f['scadenza'],
+                "Giorni": f"{giorni}gg"
+            })
+        
+        if dati_scadenze:
+            df_scadenze = pd.DataFrame(dati_scadenze)
+            st.dataframe(df_scadenze, use_container_width=True)
+    
+    # TORNA INDIETRO
+    if st.button("⬅️ **Torna alla Home**", type="secondary", use_container_width=True):
         st.session_state.pagina = "home"
         st.rerun()
 
