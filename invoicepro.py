@@ -3,7 +3,7 @@ import json
 import os
 import pandas as pd
 import io
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import base64
@@ -508,58 +508,51 @@ elif st.session_state.pagina == "analisi":
     
     st.markdown("---")
     
-    # SCADENZE MESE CORRENTE
-    oggi = datetime.now().date()
-    attive_scadute = []
-    passive_scadute = []
-    attive_ok = []
-    passive_ok = []
-    
-    for f in attive_mese:
-        if 'scadenza' in f:
-            scadenza = datetime.strptime(f['scadenza'], "%d/%m/%Y").date()
-            if scadenza < oggi:
-                attive_scadute.append(f)
-            else:
-                attive_ok.append(f)
-    
-    for f in passive_mese:
-        if 'scadenza' in f:
-            scadenza = datetime.strptime(f['scadenza'], "%d/%m/%Y").date()
-            if scadenza < oggi:
-                passive_scadute.append(f)
-            else:
-                passive_ok.append(f)
-    
-    # VISUALIZZAZIONE SCADENZE
-    col_scad1, col_scad2 = st.columns(2)
-    
-    with col_scad1:
-        st.markdown("### 🚨 **SCADUTE**")
-        if attive_scadute:
-            st.error(f"**{len(attive_scadute)} attive**")
-            for f in attive_scadute:
-                giorni = (oggi - datetime.strptime(f['scadenza'], "%d/%m/%Y").date()).days
-                st.warning(f"• {f['numero']} - €{f['totale']:.2f}")
-        else:
-            st.success("✅ Nessuna attiva scaduta")
-            
-        if passive_scadute:
-            st.error(f"**{len(passive_scadute)} passive**")
-            for f in passive_scadute:
-                giorni = (oggi - datetime.strptime(f['scadenza'], "%d/%m/%Y").date()).days
-                st.warning(f"• {f['numero']} - €{f['totale']:.2f}")
-        else:
-            st.success("✅ Nessuna passiva scaduta")
-    
-    with col_scad2:
-        st.markdown("### ✅ **IN SCADENZA**")
-        st.info(f"**{len(attive_ok)} attive OK**")
-        st.info(f"**{len(passive_ok)} passive OK**")
+# SCADENZE MESE CORRENTE - FATTIURE MANCANTI
+st.markdown("---")
+oggi = datetime.now().date()
 
-    if st.button("⬅️ **Home**", type="secondary", use_container_width=True):
-        st.session_state.pagina = "home"
-        st.rerun()
+# Fatture da controllare (tutte quelle del mese con campo scadenza)
+fatture_da_controllare = []
+for f in attive_mese + passive_mese:
+    if 'scadenza' in f:
+        try:
+            scadenza = datetime.strptime(f['scadenza'], "%d/%m/%Y").date()
+            fatture_da_controllare.append((f, scadenza))
+        except:
+            continue
+
+# CLASSIFICAZIONE
+scadute = [(f, sc) for f, sc in fatture_da_controllare if sc < oggi]
+in_scadenza_30gg = [(f, sc) for f, sc in fatture_da_controllare if oggi <= sc <= oggi + timedelta(days=30)]
+prossime = [(f, sc) for f, sc in fatture_da_controllare if sc > oggi + timedelta(days=30)]
+
+# DASHBOARD SCADENZE
+col1, col2, col3 = st.columns(3)
+col1.metric("🚨 **SCADUTE**", len(scadute))
+col2.metric("⚠️ **IN 30GG**", len(in_scadenza_30gg))
+col3.metric("⏳ **PROSSIME**", len(prossime))
+
+st.markdown("---")
+
+# ELENCO DETTAGLIATO FATTIURE MANCANTI
+if scadute:
+    st.markdown("### 🚨 **FATTIURE SCADUTE** (Da incassare/pagare)")
+    for fattura, scadenza in scadute[:10]:  # Max 10
+        giorni = (oggi - scadenza).days
+        tipo = "ATTIVA" if fattura in attive_mese else "PASSIVA"
+        colore = st.error if tipo == "ATTIVA" else st.warning
+        colore(f"**{tipo}:** {fattura['numero']} | **{fattura['cliente_fornitore'][:25]}** | **€{fattura['totale']:.2f}** | *{giorni}gg scaduti*")
+
+if in_scadenza_30gg:
+    st.markdown("### ⚠️ **FATTIURE IN SCADENZA (Prossimi 30gg)**")
+    for fattura, scadenza in in_scadenza_30gg[:10]:
+        giorni = (scadenza - oggi).days
+        tipo = "ATTIVA" if fattura in attive_mese else "PASSIVA"
+        st.warning(f"**{tipo}:** {fattura['numero']} | **{fattura['cliente_fornitore'][:25]}** | **€{fattura['totale']:.2f}** | *tra {giorni}gg*")
+
+if not scadute and not in_scadenza_30gg:
+    st.success("🎉 **TUTTE LE FATTURE IN REGOLA!** Nessuna scadenza imminente.")
 
 elif st.session_state.pagina == "anagrafiche":
     st.image("banner1.png", use_column_width=True, clamp=True, caption="Realizzato dal Mago con Perplexity AI")
