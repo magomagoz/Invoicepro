@@ -439,98 +439,100 @@ elif st.session_state.pagina == "analisi":
     st.image("banner1.png", use_column_width=True)
     st.header("📈 **Analisi Ricavi, Costi e Scadenze**")
     
-    # STATISTICHE GENERALI
-    col1, col2, col3, col4 = st.columns(4)
-    totali_attive = sum(f.get('totale', 0) for f in st.session_state.dati_fatture["Attiva"])
-    totali_passive = sum(f.get('totale', 0) for f in st.session_state.dati_fatture["Passiva"])
-    
-    col1.metric("💰 **RICAVI TOTALI**", f"€ {totali_attive:,.2f}")
-    col2.metric("💸 **COSTI TOTALI**", f"€ {totali_passive:,.2f}")
-    col3.metric("📊 **GUADAGNO**", f"€ {totali_attive - totali_passive:,.2f}", 
-                delta=f"{((totali_attive/totali_passive)-1)*100:.1f}%" if totali_passive > 0 else "∞")
-    mesi_it = {
-    1: "Gennaio", 2: "Febbraio", 3: "Marzo", 4: "Aprile", 5: "Maggio", 6: "Giugno",
-    7: "Luglio", 8: "Agosto", 9: "Settembre", 10: "Ottobre", 11: "Novembre", 12: "Dicembre"
+    # SELETTORE MESI
+    mesi_italiani = {
+        1: "Gennaio", 2: "Febbraio", 3: "Marzo", 4: "Aprile", 
+        5: "Maggio", 6: "Giugno", 7: "Luglio", 8: "Agosto", 
+        9: "Settembre", 10: "Ottobre", 11: "Novembre", 12: "Dicembre"
     }
-    mese_nome = mesi_it[datetime.now().month]
-    col4.metric("📅 **MESE CORRENTE**", f"{mese_nome} {datetime.now().year}")
-
-    #col4.metric("📅 **OGGI**", datetime.now().strftime("%d/%m/%Y"))
+    
+    anni_disponibili = list(range(2020, 2027))
+    col_mese, col_anno = st.columns(2)
+    
+    with col_mese:
+        mese_selezionato = st.selectbox(
+            "📅 **Mese**", 
+            list(mesi_italiani.values()), 
+            index=datetime.now().month - 1
+        )
+    
+    with col_anno:
+        anno_selezionato = st.selectbox(
+            "📆 **Anno**", 
+            anni_disponibili, 
+            index=anni_disponibili.index(2026)
+        )
+    
+    # CONVERTE SELEZIONE IN NUMERO MESE
+    numero_mese = list(mesi_italiani.values()).index(mese_selezionato) + 1
+    
+    # FUNZIONE FILTRA PER MESE
+    def filtra_fatture_mese(fatture, mese, anno):
+        filtrate = []
+        for f in fatture:
+            try:
+                data_fattura = datetime.strptime(f['data'], "%d/%m/%Y")
+                if data_fattura.month == mese and data_fattura.year == anno:
+                    filtrate.append(f)
+            except:
+                continue
+        return filtrate
+    
+    # FILTRA DATI
+    attive_mese = filtra_fatture_mese(st.session_state.dati_fatture["Attiva"], numero_mese, anno_selezionato)
+    passive_mese = filtra_fatture_mese(st.session_state.dati_fatture["Passiva"], numero_mese, anno_selezionato)
+    
+    totali_attive_mese = sum(f.get('totale', 0) for f in attive_mese)
+    totali_passive_mese = sum(f.get('totale', 0) for f in passive_mese)
+    
+    # STATISTICHE MESE SELEZIONATO
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("💰 **RICAVI**", f"€ {totali_attive_mese:,.2f}", 
+                delta=f"{len(attive_mese)} fatture")
+    col2.metric("💸 **COSTI**", f"€ {totali_passive_mese:,.2f}", 
+                delta=f"{len(passive_mese)} fatture")
+    col3.metric("📊 **UTILITÀ**", f"€ {totali_attive_mese - totali_passive_mese:,.2f}", 
+                delta=f"{((totali_attive_mese/totali_passive_mese)-1)*100:+.1f}%" if totali_passive_mese > 0 else "∞")
+    col4.metric("📅 **Mese**", f"{mese_selezionato} {anno_selezionato}")
     
     st.markdown("---")
     
-    # ANALISI SCADENZE
+    # TABELLE DETTAGLIO MESE
+    col_tab1, col_tab2 = st.columns(2)
+    
+    with col_tab1:
+        st.markdown("### 💰 **Ricavi Dettaglio**")
+        if attive_mese:
+            df_attive = pd.DataFrame(attive_mese)
+            df_attive['data'] = df_attive['data'].apply(formatta_data_df)
+            df_attive = df_attive[['numero', 'cliente_fornitore', 'totale', 'data']].head(10)
+            df_attive.columns = ['Numero', 'Cliente', 'Importo', 'Data']
+            st.dataframe(df_attive, use_container_width=True, hide_index=True)
+        else:
+            st.info("📭 Nessun ricavo questo mese")
+    
+    with col_tab2:
+        st.markdown("### 💸 **Costi Dettaglio**")
+        if passive_mese:
+            df_passive = pd.DataFrame(passive_mese)
+            df_passive['data'] = df_passive['data'].apply(formatta_data_df)
+            df_passive = df_passive[['numero', 'cliente_fornitore', 'totale', 'data']].head(10)
+            df_passive.columns = ['Numero', 'Fornitore', 'Importo', 'Data']
+            st.dataframe(df_passive, use_container_width=True, hide_index=True)
+        else:
+            st.info("📭 Nessun costo questo mese")
+    
+    # ANALISI SCADENZE (come prima)
     oggi = datetime.now().date()
+    attive_scadute = [f for f in attive_mese if 'scadenza' in f and 
+                     datetime.strptime(f['scadenza'], "%d/%m/%Y").date() < oggi]
     
-    # Fatture ATTIVE da incassare
-    attive_scadute = []
-    attive_ok = []
-    for f in st.session_state.dati_fatture["Attiva"]:
-        if 'scadenza' in f:
-            scadenza = datetime.strptime(f['scadenza'], "%d/%m/%Y").date()
-            if scadenza < oggi:
-                attive_scadute.append(f)
-            else:
-                attive_ok.append(f)
-    
-    # Fatture PASSIVE da pagare  
-    passive_scadute = []
-    passive_ok = []
-    for f in st.session_state.dati_fatture["Passiva"]:
-        if 'scadenza' in f:
-            scadenza = datetime.strptime(f['scadenza'], "%d/%m/%Y").date()
-            if scadenza < oggi:
-                passive_scadute.append(f)
-            else:
-                passive_ok.append(f)
-    
-    # VISUALIZZAZIONE SCADENZE
-    col_scad1, col_scad2 = st.columns(2)
-    
-    with col_scad1:
-        st.markdown("### 🚨 **SCADUTE**")
-        if attive_scadute:
-            st.error(f"**{len(attive_scadute)} fatture attive scadute**")
-            for f in attive_scadute[:5]:  # Prime 5
-                giorni = (oggi - datetime.strptime(f['scadenza'], "%d/%m/%Y").date()).days
-                st.warning(f"• {f['numero']} - €{f['totale']:.2f} ({giorni}gg)")
-        else:
-            st.success("✅ Nessuna attiva scaduta")
-            
-        if passive_scadute:
-            st.error(f"**{len(passive_scadute)} fatture passive scadute**")
-            for f in passive_scadute[:5]:
-                giorni = (oggi - datetime.strptime(f['scadenza'], "%d/%m/%Y").date()).days
-                st.warning(f"• {f['numero']} - €{f['totale']:.2f} ({giorni}gg)")
-        else:
-            st.success("✅ Nessuna passiva scaduta")
-    
-    with col_scad2:
-        st.markdown("### ✅ **PAGATE**")
-        st.info(f"**{len(attive_ok)} attive da incassare**")
-        st.info(f"**{len(passive_ok)} passive da pagare**")
-    
-    # TABELLA COMPLETA SCADENZE
-    if attive_scadute or passive_scadute:
+    if attive_scadute:
         st.markdown("---")
-        st.subheader("📋 **DETTAGLIO SCADENZE**")
-        
-        dati_scadenze = []
-        for f in attive_scadute + passive_scadute:
-            scadenza_date = datetime.strptime(f['scadenza'], "%d/%m/%Y").date()
-            giorni = (oggi - scadenza_date).days
-            dati_scadenze.append({
-                "Tipo": "ATTIVA ❌" if f in attive_scadute else "PASSIVA ❌",
-                "Numero": f['numero'],
-                "Cliente": f['cliente_fornitore'][:20] + "...",
-                "Importo": f"€{f['totale']:.2f}",
-                "Scadenza": f['scadenza'],
-                "Giorni": f"{giorni}gg"
-            })
-        
-        if dati_scadenze:
-            df_scadenze = pd.DataFrame(dati_scadenze)
-            st.dataframe(df_scadenze, use_container_width=True)
+        st.error(f"🚨 **{len(attive_scadute)} FATTURE SCADUTE** nel mese selezionato")
+        for f in attive_scadute:
+            giorni = (oggi - datetime.strptime(f['scadenza'], "%d/%m/%Y").date()).days
+            st.warning(f"• {f['numero']} - €{f['totale']:.2f} ({giorni}gg)")
     
     # TORNA INDIETRO
     if st.button("⬅️ **Torna alla Home**", type="secondary", use_container_width=True):
