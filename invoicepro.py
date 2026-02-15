@@ -212,7 +212,10 @@ st.sidebar.markdown("---")
 # PAGINE PRINCIPALI (SENZA SPAZI VUOTI)
 # =============================================================================
 if st.session_state.pagina == "home":
-    st.image("banner1.png", use_column_width=False, caption="Realizzato dal Mago con Perplexity AI")
+    # Sostituisci TUTTI i banner con:
+    st.image("banner1.png", use_column_width=True, clamp=True, caption="Realizzato dal Mago con Perplexity AI")
+
+    #st.image("banner1.png", use_column_width=False, caption="Realizzato dal Mago con Perplexity AI")
     #st.title("💼 **Fatturazione Aziendale** 💼")
     st.markdown("---")
     
@@ -335,7 +338,7 @@ elif st.session_state.pagina == "form":
     st.metric("📝 **Stato form**", stato)
     
 elif st.session_state.pagina == "storico":
-    st.image("banner1.png", use_column_width=False)
+    st.image("banner1.png", use_column_width=True, clamp=True, caption="Realizzato dal Mago con Perplexity AI")
     st.header("📋 **Archivio Fatture**")
     
     # Statistiche
@@ -438,7 +441,7 @@ elif st.session_state.pagina == "storico":
         st.rerun()
 
 elif st.session_state.pagina == "analisi":
-    st.image("banner1.png", use_column_width=True)
+    st.image("banner1.png", use_column_width=True, clamp=True, caption="Realizzato dal Mago con Perplexity AI")
     st.header("📈 **Analisi Ricavi, Costi e Scadenze**")
     
     # SELETTORE MESI
@@ -559,7 +562,7 @@ elif st.session_state.pagina == "analisi":
         st.rerun()
 
 elif st.session_state.pagina == "anagrafiche":
-    st.image("banner1.png", use_column_width=False)
+    st.image("banner1.png", use_column_width=True, clamp=True, caption="Realizzato dal Mago con Perplexity AI")
     st.header("👥 **Gestione Anagrafiche**")
     
     # Tabs per nuovi inserimenti
