@@ -441,27 +441,22 @@ elif st.session_state.pagina == "storico":
         st.rerun()
 
 elif st.session_state.pagina == "analisi":
-    st.image("banner1.png", use_column_width=True, clamp=True, caption="Realizzato dal Mago con Perplexity AI")
+    st.image("banner1.png", use_column_width=True)
     st.header("📈 **Analisi Ricavi, Costi e Scadenze**")
     
     # SELETTORE MESI
-    mesi_italiani = {
-        1: "Gennaio", 2: "Febbraio", 3: "Marzo", 4: "Aprile", 
-        5: "Maggio", 6: "Giugno", 7: "Luglio", 8: "Agosto", 
-        9: "Settembre", 10: "Ottobre", 11: "Novembre", 12: "Dicembre"
-    }
+    mesi_italiani = {1: "Gennaio", 2: "Febbraio", 3: "Marzo", 4: "Aprile", 5: "Maggio", 6: "Giugno",
+                    7: "Luglio", 8: "Agosto", 9: "Settembre", 10: "Ottobre", 11: "Novembre", 12: "Dicembre"}
     
-    anni_disponibili = list(range(2020, 2027))
     col_mese, col_anno = st.columns(2)
-    
     with col_mese:
         mese_selezionato = st.selectbox("📅 **Mese**", list(mesi_italiani.values()), index=datetime.now().month - 1)
     with col_anno:
-        anno_selezionato = st.selectbox("📆 **Anno**", anni_disponibili, index=anni_disponibili.index(2026))
+        anno_selezionato = st.selectbox("📆 **Anno**", list(range(2020, 2027)), index=5)  # 2026
     
     numero_mese = list(mesi_italiani.values()).index(mese_selezionato) + 1
     
-    # FILTRA PER MESE
+    # FUNZIONE FILTRA
     def filtra_fatture_mese(fatture, mese, anno):
         filtrate = []
         for f in fatture:
@@ -473,196 +468,73 @@ elif st.session_state.pagina == "analisi":
                 continue
         return filtrate
     
+    # FILTRA DATI ✓
     attive_mese = filtra_fatture_mese(st.session_state.dati_fatture["Attiva"], numero_mese, anno_selezionato)
     passive_mese = filtra_fatture_mese(st.session_state.dati_fatture["Passiva"], numero_mese, anno_selezionato)
     
     # STATISTICHE
-    col1, col2, col3, col4 = st.columns(4)
     totali_attive_mese = sum(f.get('totale', 0) for f in attive_mese)
     totali_passive_mese = sum(f.get('totale', 0) for f in passive_mese)
     
+    col1, col2, col3, col4 = st.columns(4)
     col1.metric("💰 **RICAVI**", f"€ {totali_attive_mese:,.2f}", delta=f"{len(attive_mese)} fatt.")
     col2.metric("💸 **COSTI**", f"€ {totali_passive_mese:,.2f}", delta=f"{len(passive_mese)} fatt.")
-    col3.metric("📊 **SALDO**", f"€ {totali_attive_mese - totali_passive_mese:,.2f}")
+    col3.metric("📊 **UTILITÀ**", f"€ {totali_attive_mese - totali_passive_mese:,.2f}")
     col4.metric("📅 **Mese**", f"{mese_selezionato} {anno_selezionato}")
     
     st.markdown("---")
-
-    # TABELLE DETTAGLIO (sotto)
+    
+    # TABELLE DETTAGLIO
     col_tab1, col_tab2 = st.columns(2)
     with col_tab1:
-        st.markdown("### 💰 **Ricavi Dettaglio**")
+        st.markdown("### 💰 **Ricavi**")
         if attive_mese:
             df = pd.DataFrame(attive_mese)[['numero', 'cliente_fornitore', 'totale']].head(8)
             st.dataframe(df, use_container_width=True, hide_index=True)
         else:
-            st.info("Nessun dato")
+            st.info("Nessun ricavo")
     
     with col_tab2:
-        st.markdown("### 💸 **Costi Dettaglio**")
+        st.markdown("### 💸 **Costi**")
         if passive_mese:
             df = pd.DataFrame(passive_mese)[['numero', 'cliente_fornitore', 'totale']].head(8)
             st.dataframe(df, use_container_width=True, hide_index=True)
         else:
-            st.info("Nessun dato")
+            st.info("Nessun costo")
     
+    # ✅ SCADENZE - ORA FUNZIONA (variabili definite sopra)
     st.markdown("---")
+    oggi = datetime.now().date()
+    fatture_da_controllare = []
     
-# SCADENZE MESE CORRENTE - FATTIURE MANCANTI
-st.markdown("---")
-oggi = datetime.now().date()
-
-# Fatture da controllare (tutte quelle del mese con campo scadenza)
-fatture_da_controllare = []
-for f in attive_mese + passive_mese:
-    if 'scadenza' in f:
-        try:
-            scadenza = datetime.strptime(f['scadenza'], "%d/%m/%Y").date()
-            fatture_da_controllare.append((f, scadenza))
-        except:
-            continue
-
-# CLASSIFICAZIONE
-scadute = [(f, sc) for f, sc in fatture_da_controllare if sc < oggi]
-in_scadenza_30gg = [(f, sc) for f, sc in fatture_da_controllare if oggi <= sc <= oggi + timedelta(days=30)]
-prossime = [(f, sc) for f, sc in fatture_da_controllare if sc > oggi + timedelta(days=30)]
-
-# DASHBOARD SCADENZE
-col1, col2, col3 = st.columns(3)
-col1.metric("🚨 **SCADUTE**", len(scadute))
-col2.metric("⚠️ **IN 30GG**", len(in_scadenza_30gg))
-col3.metric("⏳ **PROSSIME**", len(prossime))
-
-st.markdown("---")
-
-# ELENCO DETTAGLIATO FATTIURE MANCANTI
-if scadute:
-    st.markdown("### 🚨 **FATTIURE SCADUTE** (Da incassare/pagare)")
-    for fattura, scadenza in scadute[:10]:  # Max 10
-        giorni = (oggi - scadenza).days
-        tipo = "ATTIVA" if fattura in attive_mese else "PASSIVA"
-        colore = st.error if tipo == "ATTIVA" else st.warning
-        colore(f"**{tipo}:** {fattura['numero']} | **{fattura['cliente_fornitore'][:25]}** | **€{fattura['totale']:.2f}** | *{giorni}gg scaduti*")
-
-if in_scadenza_30gg:
-    st.markdown("### ⚠️ **FATTIURE IN SCADENZA (Prossimi 30gg)**")
-    for fattura, scadenza in in_scadenza_30gg[:10]:
-        giorni = (scadenza - oggi).days
-        tipo = "ATTIVA" if fattura in attive_mese else "PASSIVA"
-        st.warning(f"**{tipo}:** {fattura['numero']} | **{fattura['cliente_fornitore'][:25]}** | **€{fattura['totale']:.2f}** | *tra {giorni}gg*")
-
-if not scadute and not in_scadenza_30gg:
-    st.success("🎉 **TUTTE LE FATTURE IN REGOLA!** Nessuna scadenza imminente.")
-
-elif st.session_state.pagina == "anagrafiche":
-    st.image("banner1.png", use_column_width=True, clamp=True, caption="Realizzato dal Mago con Perplexity AI")
-    st.header("👥 **Gestione Anagrafiche**")
+    for f in attive_mese + passive_mese:  # ← QUI È SICURO!
+        if 'scadenza' in f:
+            try:
+                scadenza = datetime.strptime(f['scadenza'], "%d/%m/%Y").date()
+                fatture_da_controllare.append((f, scadenza))
+            except:
+                continue
     
-    # Tabs per nuovi inserimenti
-    tab1, tab2 = st.tabs(["➕ **Nuovo Cliente**", "➕ **Nuovo Fornitore**"])
+    scadute = [(f, sc) for f, sc in fatture_da_controllare if sc < oggi]
+    in_scadenza_30gg = [(f, sc) for f, sc in fatture_da_controllare if oggi <= sc <= oggi + timedelta(days=30)]
     
-    with tab1:
-        st.markdown("### 📝 **Dati Cliente**")
-        with st.form("form_cliente"):
-            col1, col2 = st.columns(2)
-            with col1:
-                rag_sociale = st.text_input("**Ragione Sociale**", placeholder="Mario Rossi Srl")
-                piva = st.text_input("**P.IVA**", placeholder="IT12345678901")
-            with col2:
-                email = st.text_input("**Email**", placeholder="info@mariorossi.it")
-                telefono = st.text_input("**Telefono**", placeholder="06-1234567")
-            
-            col_submit, col_cancel = st.columns([3, 1])
-            with col_submit:
-                submitted = st.form_submit_button("💾 **SALVA CLIENTE**", type="primary")
-            with col_cancel:
-                if st.form_submit_button("❌ **ANNULLA**"):
-                    st.rerun()
-            
-            if submitted and rag_sociale and piva:
-                if valida_piva(piva):
-                    nuovo_cliente = {
-                        "ragione_sociale": rag_sociale.strip(),
-                        "piva": piva.strip(),
-                        "email": email.strip(),
-                        "telefono": telefono.strip(),
-                        "timestamp": datetime.now().isoformat()
-                    }
-                    st.session_state.anagrafiche["clienti"].append(nuovo_cliente)
-                    salva_anagrafiche(st.session_state.anagrafiche)
-                    st.success("✅ **Cliente salvato con successo!**")
-                    st.balloons()
-                    st.rerun()
-                else:
-                    st.error("❌ **P.IVA non valida** (11 cifre numeriche)")
-            elif submitted:
-                st.error("❌ **Compila tutti i campi obbligatori**")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("🚨 **SCADUTE**", len(scadute))
+    col2.metric("⚠️ **IN 30GG**", len(in_scadenza_30gg))
+    col3.metric("⏳ **PROSSIME**", len(fatture_da_controllare) - len(scadute) - len(in_scadenza_30gg))
     
-    with tab2:
-        st.markdown("### 📝 **Dati Fornitore**")
-        with st.form("form_fornitore"):
-            col1, col2 = st.columns(2)
-            with col1:
-                rag_sociale_f = st.text_input("**Ragione Sociale**", placeholder="Fornitore XYZ")
-                piva_f = st.text_input("**P.IVA**", placeholder="IT98765432109")
-            with col2:
-                email_f = st.text_input("**Email**", placeholder="ordini@xyz.it")
-                telefono_f = st.text_input("**Telefono**", placeholder="02-9876543")
-            
-            col_submit_f, col_cancel_f = st.columns([3, 1])
-            with col_submit_f:
-                submitted_f = st.form_submit_button("💾 **SALVA FORNITORE**", type="primary")
-            with col_cancel_f:
-                if st.form_submit_button("❌ **ANNULLA**"):
-                    st.rerun()
-            
-            if submitted_f and rag_sociale_f and piva_f:
-                if valida_piva(piva_f):
-                    nuovo_fornitore = {
-                        "ragione_sociale": rag_sociale_f.strip(),
-                        "piva": piva_f.strip(),
-                        "email": email_f.strip(),
-                        "telefono": telefono_f.strip(),
-                        "timestamp": datetime.now().isoformat()
-                    }
-                    st.session_state.anagrafiche["fornitori"].append(nuovo_fornitore)
-                    salva_anagrafiche(st.session_state.anagrafiche)
-                    st.success("✅ **Fornitore salvato con successo!**")
-                    st.balloons()
-                    st.rerun()
-                else:
-                    st.error("❌ **P.IVA non valida** (11 cifre numeriche)")
-            elif submitted_f:
-                st.error("❌ **Compila tutti i campi obbligatori**")
+    if scadute:
+        st.markdown("### 🚨 **Fatture Scadute**")
+        for fattura, scadenza in scadute:
+            giorni = (oggi - scadenza).days
+            st.error(f"• {fattura['numero']} - {fattura['cliente_fornitore'][:25]} - €{fattura['totale']:.2f} ({giorni}gg)")
     
-    # Elenco anagrafiche
-    st.markdown("---")
-    st.subheader("📋 **Elenco Anagrafiche Salvate**")
+    if in_scadenza_30gg:
+        st.markdown("### ⚠️ **In Scadenza 30gg**")
+        for fattura, scadenza in in_scadenza_30gg:
+            giorni = (scadenza - oggi).days
+            st.warning(f"• {fattura['numero']} - {fattura['cliente_fornitore'][:25]} - €{fattura['totale']:.2f} ({giorni}gg)")
     
-    col_list1, col_list2 = st.columns(2)
-    
-    with col_list1:
-        st.markdown("### 🏢 **CLIENTI**")
-        if st.session_state.anagrafiche["clienti"]:
-            for i, cliente in enumerate(st.session_state.anagrafiche["clienti"][:10]):
-                with st.expander(f"**{cliente['ragione_sociale']}** - {cliente['piva']}", expanded=False):
-                    st.write(f"📧 **{cliente.get('email', 'N/D')}**")
-                    st.write(f"📞 **{cliente.get('telefono', 'N/D')}**")
-                    st.caption(f"Aggiunto: {cliente['timestamp'][:10]}")
-        else:
-            st.info("👆 **Nessun cliente registrato**")
-    
-    with col_list2:
-        st.markdown("### 🏭 **FORNITORI**")
-        if st.session_state.anagrafiche["fornitori"]:
-            for i, fornitore in enumerate(st.session_state.anagrafiche["fornitori"][:10]):
-                with st.expander(f"**{fornitore['ragione_sociale']}** - {fornitore['piva']}", expanded=False):
-                    st.write(f"📧 **{fornitore.get('email', 'N/D')}**")
-                    st.write(f"📞 **{fornitore.get('telefono', 'N/D')}**")
-                    st.caption(f"Aggiunto: {fornitore['timestamp'][:10]}")
-        else:
-            st.info("👆 **Nessun fornitore registrato**")
-    
-    if st.button("⬅️ **Torna alla Home**", type="secondary", use_container_width=True):
+    if st.button("⬅️ **Home**", type="secondary", use_container_width=True):
         st.session_state.pagina = "home"
         st.rerun()
