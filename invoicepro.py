@@ -206,6 +206,8 @@ st.sidebar.markdown("---")
 if st.sidebar.button("📈 **ANALISI RICAVI/COSTI**", use_container_width=True, type="secondary"):
     st.session_state.pagina = "analisi"
     st.rerun()
+st.sidebar.markdown("---")
+
 # =============================================================================
 # PAGINE PRINCIPALI (SENZA SPAZI VUOTI)
 # =============================================================================
