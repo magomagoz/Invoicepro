@@ -180,13 +180,15 @@ def fattura_to_xml(fattura, tipo):
 # SIDEBAR
 # =============================================================================
 st.sidebar.title("📊 **CONFIGURAZIONE**")
+
+st.sidebar.info(f"**Anno selezionato: {st.session_state.anno_selezionato}**")
+
 anni = list(range(2020, 2051))
 st.session_state.anno_selezionato = st.sidebar.selectbox(
     "📅 **Anno Fatture**", 
     anni, 
     index=anni.index(2026)
 )
-st.sidebar.info(f"**Anno selezionato: {st.session_state.anno_selezionato}**")
 
 st.sidebar.markdown("---")
 if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
