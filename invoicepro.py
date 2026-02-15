@@ -434,7 +434,7 @@ elif st.session_state.pagina == "analisi":
     
     col1.metric("💰 **RICAVI TOTALI**", f"€ {totali_attive:,.2f}")
     col2.metric("💸 **COSTI TOTALI**", f"€ {totali_passive:,.2f}")
-    col3.metric("📊 **UTILITÀ**", f"€ {totali_attive - totali_passive:,.2f}", 
+    col3.metric("📊 **GUADAGNO**", f"€ {totali_attive - totali_passive:,.2f}", 
                 delta=f"{((totali_attive/totali_passive)-1)*100:.1f}%" if totali_passive > 0 else "∞")
     col4.metric("📅 **OGGI**", datetime.now().strftime("%d/%m/%Y"))
     
