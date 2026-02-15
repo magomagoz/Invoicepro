@@ -484,6 +484,30 @@ elif st.session_state.pagina == "analisi":
     col4.metric("📅 **Mese**", f"{mese_selezionato} {anno_selezionato}")
     
     st.markdown("---")
+
+    # TABELLE DETTAGLIO (sotto)
+    col_tab1, col_tab2 = st.columns(2)
+    with col_tab1:
+        st.markdown("### 💰 **Ricavi Dettaglio**")
+        if attive_mese:
+            df = pd.DataFrame(attive_mese)[['numero', 'cliente_fornitore', 'totale']].head(8)
+            st.dataframe(df, use_container_width=True, hide_index=True)
+        else:
+            st.info("Nessun dato")
+    
+    with col_tab2:
+        st.markdown("### 💸 **Costi Dettaglio**")
+        if passive_mese:
+            df = pd.DataFrame(passive_mese)[['numero', 'cliente_fornitore', 'totale']].head(8)
+            st.dataframe(df, use_container_width=True, hide_index=True)
+        else:
+            st.info("Nessun dato")
+    
+    if st.button("⬅️ **Home**", type="secondary", use_container_width=True):
+        st.session_state.pagina = "home"
+        st.rerun()
+
+    st.markdown("---")
     
     # SCADENZE MESE CORRENTE
     oggi = datetime.now().date()
@@ -533,29 +557,6 @@ elif st.session_state.pagina == "analisi":
         st.markdown("### ✅ **IN SCADENZA**")
         st.info(f"**{len(attive_ok)} attive OK**")
         st.info(f"**{len(passive_ok)} passive OK**")
-    
-    # TABELLE DETTAGLIO (sotto)
-    col_tab1, col_tab2 = st.columns(2)
-    with col_tab1:
-        st.markdown("### 💰 **Ricavi Dettaglio**")
-        if attive_mese:
-            df = pd.DataFrame(attive_mese)[['numero', 'cliente_fornitore', 'totale']].head(8)
-            st.dataframe(df, use_container_width=True, hide_index=True)
-        else:
-            st.info("Nessun dato")
-    
-    with col_tab2:
-        st.markdown("### 💸 **Costi Dettaglio**")
-        if passive_mese:
-            df = pd.DataFrame(passive_mese)[['numero', 'cliente_fornitore', 'totale']].head(8)
-            st.dataframe(df, use_container_width=True, hide_index=True)
-        else:
-            st.info("Nessun dato")
-    
-    if st.button("⬅️ **Home**", type="secondary", use_container_width=True):
-        st.session_state.pagina = "home"
-        st.rerun()
-
 
 elif st.session_state.pagina == "anagrafiche":
     st.image("banner1.png", use_column_width=False)
