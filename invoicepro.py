@@ -172,7 +172,6 @@ st.session_state.anno_selezionato = st.sidebar.selectbox(
 st.sidebar.info(f"**Anno selezionato: {st.session_state.anno_selezionato}**")
 
 st.markdown("---")
-
 if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
     st.session_state.pagina = "home"
     st.rerun()
@@ -186,7 +185,6 @@ if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
     st.rerun()
 
 st.sidebar.markdown("---")
-
 if st.sidebar.button("📈 **ANALISI RICAVI/COSTI**", use_container_width=True, type="secondary"):
     st.session_state.pagina = "analisi"
     st.rerun()
@@ -204,7 +202,7 @@ if st.session_state.pagina == "home":
     with col1:
         st.markdown("### 🟢 **FATTURE ATTIVE**")
         st.markdown("*Fatture emesse ai clienti*")
-        if st.button("**➕ INIZIA NUOVA**", key="attiva_go", use_container_width=True, type="primary"):
+        if st.button("**➕ INIZIA NUOVA**", key="attiva_go", use_container_width=True, type="secondary"):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Attiva"
             st.session_state.form_dati_salvati = False
@@ -214,7 +212,7 @@ if st.session_state.pagina == "home":
     with col2:
         st.markdown("### 🔵 **FATTURE PASSIVE**")
         st.markdown("*Fatture ricevute dai fornitori*")
-        if st.button("**➕ INIZIA NUOVA**", key="passiva_go", use_container_width=True, type="primary"):
+        if st.button("**➕ INIZIA NUOVA**", key="passiva_go", use_container_width=True, type="secondary"):
             st.session_state.pagina = "form"
             st.session_state.tipo = "Passiva"
             st.session_state.form_dati_salvati = False
