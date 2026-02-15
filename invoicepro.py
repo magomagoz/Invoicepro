@@ -503,10 +503,6 @@ elif st.session_state.pagina == "analisi":
         else:
             st.info("Nessun dato")
     
-    if st.button("⬅️ **Home**", type="secondary", use_container_width=True):
-        st.session_state.pagina = "home"
-        st.rerun()
-
     st.markdown("---")
     
     # SCADENZE MESE CORRENTE
@@ -557,6 +553,10 @@ elif st.session_state.pagina == "analisi":
         st.markdown("### ✅ **IN SCADENZA**")
         st.info(f"**{len(attive_ok)} attive OK**")
         st.info(f"**{len(passive_ok)} passive OK**")
+
+    if st.button("⬅️ **Home**", type="secondary", use_container_width=True):
+        st.session_state.pagina = "home"
+        st.rerun()
 
 elif st.session_state.pagina == "anagrafiche":
     st.image("banner1.png", use_column_width=False)
