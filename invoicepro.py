@@ -190,7 +190,7 @@ st.sidebar.info(f"**Anno selezionato: {st.session_state.anno_selezionato}**")
 # PAGINE PRINCIPALI
 # =============================================================================
 if st.session_state.pagina == "home":
-    st.image("banner1.png", use_column_width=False, caption="Invoice Pro")
+    st.image("banner1.png", use_column_width=True, caption="Invoice Pro")
     st.title("💼 **Fatturazione Aziendale** 💼")
     st.markdown("---")
     
