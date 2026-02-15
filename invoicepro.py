@@ -168,10 +168,9 @@ st.session_state.anno_selezionato = st.sidebar.selectbox(
     anni, 
     index=anni.index(2026)
 )
-
 st.sidebar.info(f"**Anno selezionato: {st.session_state.anno_selezionato}**")
 
-st.markdown("---")
+st.sidebar.markdown("---")
 if st.sidebar.button("🏠 **FATTURAZIONE**", use_container_width=True):
     st.session_state.pagina = "home"
     st.rerun()
@@ -188,7 +187,6 @@ st.sidebar.markdown("---")
 if st.sidebar.button("📈 **ANALISI RICAVI/COSTI**", use_container_width=True, type="secondary"):
     st.session_state.pagina = "analisi"
     st.rerun()
-
 # =============================================================================
 # PAGINE PRINCIPALI (SENZA SPAZI VUOTI)
 # =============================================================================
