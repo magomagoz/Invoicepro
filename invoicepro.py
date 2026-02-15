@@ -6,6 +6,7 @@ import io
 from datetime import datetime
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
+import base64
 
 st.markdown("""
 <style>
@@ -151,8 +152,6 @@ def formatta_data_df(data_str):
     except:
         return str(data_str)
 
-import base64
-
 def fattura_to_xml(fattura, tipo):
     fattura_xml = ET.Element("Fattura", tipo=tipo)
     generali = ET.SubElement(fattura_xml, "Generale")
@@ -199,9 +198,9 @@ if st.sidebar.button("📋 **ARCHIVIO FATTURE**", use_container_width=True):
     st.session_state.pagina = "storico"
     st.rerun()
 
-if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
-    st.session_state.pagina = "anagrafiche"
-    st.rerun()
+#if st.sidebar.button("👥 **ANAGRAFICHE**", use_container_width=True):
+    #st.session_state.pagina = "anagrafiche"
+    #st.rerun()
 
 st.sidebar.markdown("---")
 if st.sidebar.button("📈 **ANALISI RICAVI/COSTI**", use_container_width=True, type="secondary"):
@@ -287,7 +286,6 @@ elif st.session_state.pagina == "form":
         "pagamento": pagamento,
         "note": note.strip(),
         "scadenza": scadenza.strftime("%d/%m/%Y"),  # ← AGGIUNTO
-        'analisi': {}  # ← AGGIUNGI QUESTA RIGA
     }
 
     # Pulsanti azione con validazione
@@ -355,7 +353,7 @@ elif st.session_state.pagina == "storico":
             
             csv_data = df_attive.to_csv(index=False, sep=';', encoding='utf-8').encode('utf-8')
             st.download_button(
-                label="📄 **CSV Attive**",
+                label="📄 **Salva fatture Attive**",
                 data=csv_data,
                 file_name=f"Fatture_Attive_{datetime.now().strftime('%d%m%Y_%H%M')}.csv",
                 mime='text/csv',
@@ -386,7 +384,6 @@ elif st.session_state.pagina == "storico":
                         st.session_state.confirm_delete_attive = False
                         st.rerun()
 
-
             st.dataframe(df_attive, use_container_width=True, hide_index=True)
         else:
             st.info("👆 **Nessuna fattura attiva**. Crea la prima dalla Home!")
@@ -399,7 +396,7 @@ elif st.session_state.pagina == "storico":
             # Bottone esportazione
             csv_data = df_passive.to_csv(index=False, sep=';', encoding='utf-8').encode('utf-8')
             st.download_button(
-                label="📄 **CSV Passive**",
+                label="📄 **Salva fatture Passive**",
                 data=csv_data,
                 file_name=f"Fatture_Passive_{datetime.now().strftime('%d%m%Y_%H%M')}.csv",
                 mime='text/csv',
@@ -407,8 +404,10 @@ elif st.session_state.pagina == "storico":
             )
 
             if st.button(
-                label="Cancella Storico Attive e Passive",
-                key="delete_history"  # Add unique key if needed
+                label="Cancella Storico Attive e Passive", 
+                key="cancella_attive",
+                use_container_width=True, 
+                type="secondary"
             ):
                 st.session_state.confirm_delete_attive = True
             
@@ -428,10 +427,9 @@ elif st.session_state.pagina == "storico":
                         st.session_state.confirm_delete_attive = False
                         st.rerun()
 
-
-            st.dataframe(df_passive, use_container_width=True, hide_index=True)
+            st.dataframe(df_attive, use_container_width=True, hide_index=True)
         else:
-            st.info("👆 **Nessuna fattura passiva**. Crea la prima dalla Home!")
+            st.info("👆 **Nessuna fattura attiva**. Crea la prima dalla Home!")
     
     if st.button("🏠 **Torna alla Home**", type="secondary", use_container_width=True):
         st.session_state.pagina = "home"
