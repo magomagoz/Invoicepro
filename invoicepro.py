@@ -40,14 +40,6 @@ def check_login():
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
-# ========== CONFIGURAZIONE SECRETS.TOML ==========
-# Crea questo file .streamlit/secrets.toml nella root del progetto:
-"""
-[general]
-username = "admin"
-password = "tua_password_sicura_qui"
-"""
-
 # Verifica autenticazione all'inizio
 check_login()
 
