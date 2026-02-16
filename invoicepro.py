@@ -8,6 +8,81 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import base64
 
+
+# ========== LOGIN CON SECRETS ==========
+def check_login():
+    """Gestisce l'autenticazione con credenziali da secrets.toml"""
+    DEFAULT_USERNAME = st.secrets.get("username", "admin")
+    DEFAULT_PASSWORD = st.secrets.get("password", "password123")
+    
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+        st.session_state.username = None
+    
+    if st.session_state.authenticated:
+        return True
+    
+    # Pagina di login
+    st.markdown("""
+    <style>
+    .login-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px 20px;
+        border-radius: 10px;
+        text-align: center;
+        color: white;
+        max-width: 400px;
+        margin: 100px auto;
+    }
+    .login-title {
+        font-size: 2.5em;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div class="login-container">
+        <div class="login-title">🔐 Dashboard Fatturazione</div>
+    """, unsafe_allow_html=True)
+    
+    username = st.text_input("👤 **Username**", key="login_username")
+    password = st.text_input("🔑 **Password**", type="password", key="login_password")
+    
+    col1, col2 = st.columns([3,1])
+    with col1:
+        if st.button("🚀 **ACCEDI**", type="primary", use_container_width=True):
+            if username == DEFAULT_USERNAME and password == DEFAULT_PASSWORD:
+                st.session_state.authenticated = True
+                st.session_state.username = username
+                st.success("✅ **Login riuscito!**")
+                st.rerun()
+            else:
+                st.error("❌ **Credenziali errate!**")
+                st.warning("Contatta l'amministratore per le credenziali")
+    
+    with col2:
+        if st.button("❌ **ESCI**", type="secondary"):
+            st.session_state.authenticated = False
+            st.session_state.username = None
+            st.rerun()
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.stop()
+
+# ========== CONFIGURAZIONE SECRETS.TOML ==========
+# Crea questo file .streamlit/secrets.toml nella root del progetto:
+"""
+[general]
+username = "admin"
+password = "tua_password_sicura_qui"
+"""
+
+# Verifica autenticazione all'inizio
+check_login()
+
+# ========== STILE CSS (solo dopo login) ==========
 st.markdown("""
 <style>
 /* METRIC PIÙ PICCOLE */
@@ -25,6 +100,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Header con utente loggato
+st.sidebar.success(f"👋 **Benvenuto, {st.session_state.username}!**")
+st.sidebar.markdown("---")
 
 # =============================================================================
 # INIZIALIZZAZIONE SESSION STATE (SENZA LIBRERIE ESTERNE)
