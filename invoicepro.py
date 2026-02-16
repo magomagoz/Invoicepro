@@ -12,8 +12,8 @@ import base64
 # ========== LOGIN CON SECRETS ==========
 def check_login():
     """Gestisce l'autenticazione con credenziali da secrets.toml"""
-    DEFAULT_USERNAME = st.secrets.get("username", "admin")
-    DEFAULT_PASSWORD = st.secrets.get("password", "password123")
+    DEFAULT_USERNAME = st.secrets.get("username", "Admin")
+    DEFAULT_PASSWORD = st.secrets.get("password", "Logi2000!")
     
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
@@ -22,31 +22,8 @@ def check_login():
     if st.session_state.authenticated:
         return True
     
-    # Pagina di login
-    st.markdown("""
-    <style>
-    .login-container {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 40px 20px;
-        border-radius: 10px;
-        text-align: center;
-        color: white;
-        max-width: 400px;
-        margin: 100px auto;
-    }
-    .login-title {
-        font-size: 2.5em;
-        margin-bottom: 20px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="login-container">
-        <div class="login-title">🔐 Dashboard Fatturazione</div>
-    """, unsafe_allow_html=True)
-    
+    st.image("banner1.png", use_column_width=True, clamp=True, caption="Realizzato dal Mago con Perplexity AI")
+
     username = st.text_input("👤 **Username**", key="login_username")
     password = st.text_input("🔑 **Password**", type="password", key="login_password")
     
