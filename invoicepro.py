@@ -27,24 +27,16 @@ def check_login():
     username = st.text_input("👤 **Username**", key="login_username")
     password = st.text_input("🔑 **Password**", type="password", key="login_password")
     
-    col1, col2 = st.columns([3,1])
-    with col1:
-        if st.button("🚀 **ACCEDI**", type="primary", use_container_width=True):
-            if username == DEFAULT_USERNAME and password == DEFAULT_PASSWORD:
-                st.session_state.authenticated = True
-                st.session_state.username = username
-                st.success("✅ **Login riuscito!**")
-                st.rerun()
-            else:
-                st.error("❌ **Credenziali errate!**")
-                st.warning("Contatta l'amministratore per le credenziali")
-    
-    with col2:
-        if st.button("❌ **ESCI**", type="secondary"):
-            st.session_state.authenticated = False
-            st.session_state.username = None
+    if st.button("🚀 **ACCEDI**", type="primary", use_container_width=True):
+        if username == DEFAULT_USERNAME and password == DEFAULT_PASSWORD:
+            st.session_state.authenticated = True
+            st.session_state.username = username
+            st.success("✅ **Login riuscito!**")
             st.rerun()
-    
+        else:
+            st.error("❌ **Credenziali errate!**")
+            st.warning("Contatta l'amministratore per le credenziali")
+        
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
